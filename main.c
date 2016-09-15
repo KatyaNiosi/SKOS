@@ -2,7 +2,7 @@
 // this kernel is simulated, not real yet
 //
 // Team Name: SKOS (Members: Sayd Mateen and Katya Niosi)
-
+// 
 #include "spede.h"      // spede stuff
 #include "main.h"       // main stuff
 #include "isr.h"        // ISR's
