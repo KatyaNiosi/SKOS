@@ -20,14 +20,15 @@ int main() {
    int new_pid;
 
    call InitKernelData()  to initialize kernel data
-
+  
    call DeQ() to dequeue avail_q to get an un-used pid, to
    call NewProcISR(new_pid, IdleProc) (to create IdleProc)
 
-   an infinite loop to alternate two functions:
+   //an infinite loop to alternate two functions:
+   while(1) {  
       call ProcLoader() which is to simulate loading a process to run
       call KernelMain() to simulate kernel run periodically
-
+   }
    return 0;   // not reached, but compiler needs it for syntax
 }
 
