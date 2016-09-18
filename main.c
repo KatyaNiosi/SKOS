@@ -19,28 +19,28 @@ char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 int main() {
    int new_pid;
 
-   call InitKernelData()  to initialize kernel data
+   InitKernelData()      // to initialize kernel data
   
-   call DeQ() to dequeue avail_q to get an un-used pid, to
-   call NewProcISR(new_pid, IdleProc) (to create IdleProc)
+   DeQ()                 // to dequeue avail_q to get an un-used pid, to
+   NewProcISR(new_pid, IdleProc) // to create IdleProc
 
    //an infinite loop to alternate two functions:
    while(1) {  
-      call ProcLoader() which is to simulate loading a process to run
-      call KernelMain() to simulate kernel run periodically
+      ProcLoader()       // which is to simulate loading a process to run
+      KernelMain()       // to simulate kernel run periodically
    }
-   return 0;   // not reached, but compiler needs it for syntax
+   return 0;             // not reached, but compiler needs it for syntax
 }
 
 void InitKernelData() {
    int i;
 
-   call MyBzero() to clear the two queues (code this function in tools.h/.c)
+   MyBzero()             // to clear the two queues
 
-   loop on i, 0 ~ Q_SIZE-1:
-      call EnQ() to enqueue i to avail_q
+   for (i = 0; i <= Q_SIZE-1; i++)
+      EnQ()              // to enqueue i to avail_q
 
-   set run_pid to 0  // IdleProc is chosen to run first
+   run_pid = 0           // IdleProc is chosen to run first
 }
 
 void ProcScheduler() {  // to choose a run PID
