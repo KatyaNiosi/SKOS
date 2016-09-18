@@ -1,4 +1,4 @@
-// main.c, 159
+// main.c, 159"
 // this kernel is simulated, not real yet
 //
 // Team Name: SKOS (Members: Sayd Mateen and Katya Niosi)
@@ -19,15 +19,15 @@ char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 int main() {
    int new_pid;
 
-   InitKernelData()      // to initialize kernel data
+   InitKernelData();      // to initialize kernel data
   
-   DeQ()                 // to dequeue avail_q to get an un-used pid, to
-   NewProcISR(new_pid, IdleProc) // to create IdleProc
+   new_pid = DeQ(&avail_q); // to dequeue avail_q to get an un-used pid
+   NewProcISR(new_pid, IdleProc); // to create IdleProc
 
    //an infinite loop to alternate two functions:
    while(1) {  
-      ProcLoader()       // which is to simulate loading a process to run
-      KernelMain()       // to simulate kernel run periodically
+      ProcLoader();      // which is to simulate loading a process to run
+      KernelMain();       // to simulate kernel run periodically
    }
    return 0;             // not reached, but compiler needs it for syntax
 }
@@ -35,59 +35,61 @@ int main() {
 void InitKernelData() {
    int i;
 
-   MyBzero()             // to clear the two queues
+   MyBzero((char *)&ready_q, sizeof(ready_q));   // to clear the ready queue
+   MyBzero((char *)&avail_q, sizeof(avail_q));   // to clear the available queue
 
    for (i = 0; i <= Q_SIZE-1; i++)
-      EnQ()              // to enqueue i to avail_q
+      EnQ(i, &avail_q);              // to enqueue i to avail_q
 
-   run_pid = 0           // IdleProc is chosen to run first
+   run_pid = 0;           // IdleProc is chosen to run first
 }
 
 void ProcScheduler() {  // to choose a run PID
-   simply return if run_pid currently is 1 or greater
-   (or continue, since run_pid is 0 or possibly -1)
+   if(run_pid >= 1)     //return if one of the user processes is running
+     return;
+   
+   if(run_pid == 0)      // IdleProc is being run
+      pcb[run_pid].state = READY;
 
-   if run_pid is 0 (meaning IdleProc is being run),
-   change its state (in its PCB) from RUN to READY
+   run_pid = DeQ(&ready_q);     // dequeue ready_q to get run_pid
+  
+   if(run_pid == -1)             // ready_q is empty
+      run_pid = 0;               // fall back to run IdleProc
 
-   get run_pid by dequeuing ready_q
-   if run_pid returned from DeQ() is -1 (ready_q is empty),
-   then set it to 0 (so fall back to run IdleProc)
-
-   set selected process (run_pid) state to RUN, and
-   clear its runtime to zero (both in its PCB)
+   pcb[run_pid].state = RUN;
+   pcb[run_pid].runtime = 0;     // clear selected processes runtime to 0
 }
 
 void KernelMain() {
    int new_pid;
    char key;
 
-   call TimerISR() to service timer (as if it just occurred)
+   TimerISR();      //  service timer (as if it just occurred)
 
-   if a key has been pressed on PC {
-      read key = cons_getchar()
+   if(cons_kbhit()) {
+      key = cons_getchar();
 
       switch(key) {
          case 'n':
-            dequeue avail_q for a new_pid
-            if new_pid is -1, show a msg on the target PC:
-               "Kernel Panic: no more process!\n"
+            new_pid = DeQ(&avail_q); // dequeue avail_q for a new_pid
+            if(new_pid== -1)
+              cons_printf("Kernel Panic: no more process!\n");
             else
-               call NewProcISR(new_pid, UserProc) to create a new process
+              NewProcISR(new_pid, UserProc); // create a new process
             break;
 
          case 'k':
-            call KillProcISR() to kill the run_pid process
+            KillProcISR();            // to kill the run_pid process
             break;
 
          case 'b':
-            call breakpoint(); which brings up GDB prompt
+            breakpoint();             //  brings up GDB prompt
             break;
 
          case 'q':
-            call exit(0) to quit the whole thing, MyOS.dli run
+           exit(0);    // quit the whole thing, MyOS.dli run
      }
    }
-   call ProcScheduler() to choose a new run_pid if needed
+   ProcScheduler();     // choose a new run_pid if needed
 }
 
