@@ -24,7 +24,7 @@ void EnQ(int data, q_t *p) {
       return;
   }
 
-  p->q[p->size-1] = data;
+  p->q[p->size] = data;
   p->size++;
 }
 
