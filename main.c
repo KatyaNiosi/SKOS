@@ -15,21 +15,34 @@ int run_pid;             // currently-running PID, if -1, none running
 q_t ready_q, avail_q;    // processes ready to run and ID's un-used
 pcb_t pcb[PROC_NUM];     // process table
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
+struct i386_gate *IDT_ptr;
 
 int main() {
    int new_pid;
 
    InitKernelData();      // to initialize kernel data
-  
-   new_pid = DeQ(&avail_q); // to dequeue avail_q to get an un-used pid
-   NewProcISR(new_pid, IdleProc); // to create IdleProc
+   InitKernelControl(); 
 
+   new_pid = DeQ(&avail_q); // to dequeue avail_q to get an un-used pid
+   //NewProcISR(new_pid, IdleProc); // to create IdleProc
+   ProcLoader(pcb[run_pid].TF_p);//load/ IdleProc
    //an infinite loop to alternate two functions:
-   while(1) {  
+   /* while(1) {  
       ProcLoader();      // which is to simulate loading a process to run
       KernelMain();       // to simulate kernel run periodically
-   }
+   }*/
    return 0;             // not reached, but compiler needs it for syntax
+}
+
+void SetEntry(int entry_num, func_ptr_t func_ptr){
+    struct i386_gate *gateptr = &IDT_ptr[entry_num];
+    fill_gate(gateptr, (int)func_ptr, get_cs(), ACC_INTR_GATE, 0);
+}
+
+void InitKernelControl(){
+    IDT_ptr = get_idt_base();
+    SetEntry(32, TimerEntry);
+    outportb(0x21, ~1);
 }
 
 void InitKernelData() {
@@ -60,11 +73,22 @@ void ProcScheduler() {  // to choose a run PID
    pcb[run_pid].runtime = 0;     // clear selected processes runtime to 0
 }
 
-void KernelMain() {
+void KernelMain(TF_t *TF_p) {
    int new_pid;
    char key;
 
-   TimerISR();      //  service timer (as if it just occurred)
+   // First save the TF_p into the PCB of the current run process 
+    
+   switch(TF_p->intr_id){
+      case TIMER_INTR:
+          TimerISR();      //  service timer (as if it just occurred)
+          // dismiss timer event ( send pic code as in timer intrupt lab ) 
+          break;
+      default:
+          cons_printf("Kernel Panic: unknown intr ID (%d)!\n", TF_p->intr_id);
+          breakpoint();
+   }
+
 
    if(cons_kbhit()) {
       key = cons_getchar();
@@ -91,5 +115,6 @@ void KernelMain() {
      }
    }
    ProcScheduler();     // choose a new run_pid if needed
+   ProcLoader(pcb[run_pid].TF_p);
 }
 

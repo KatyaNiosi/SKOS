@@ -6,6 +6,8 @@
 int main();
 void InitKernelData();
 void ProcScheduler();
-void KernelMain();
+void KernelMain(TF_t *TF_p);
+void InitKernelControl();
+void SetEntry();
 
 #endif

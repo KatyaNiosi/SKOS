@@ -3,27 +3,31 @@
 #ifndef _TYPEDEF_H_
 #define _TYPEDEF_H_
 
-#define TIME_SLICE 3         // 3 seconds then rotate to next process
+#include "TF.h"              // trapframe type TF_t is defined here
+
+#define TIME_SLICE 300       // max timer count, then rotate process
 #define PROC_NUM 20          // max number of processes
 #define Q_SIZE 20            // queuing capacity
 #define PROC_STACK_SIZE 4096 // process runtime stack in bytes
 
-typedef void(*func_ptr_t)(); // function pointer type (void-return/arg)
+typedef void (*func_ptr_t)(); // void-return function pointer type
 
 // this is the same as constants defines: AVAIL=0, READY=1, etc.
-typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, ZOMBIE, WAIT4CHILD} state_t;
+typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, ZOMBIE, WAIT2CHILD} state_t;
 
 typedef struct {             // PCB describes proc image
    state_t state;            // state of process
-   int runtime,              // runtime since loaded
-       lifespan,             // total process time since created
+   int runtime,              // runtime since loaded to run
+       lifespan,             // total runtime since created
        ppid,                 // parent PID
        cpid;                 // child PID
+   TF_t *TF_p;               // points to trapframe of process
 } pcb_t;
 
-typedef struct {             // generic integer queue
-   int q[Q_SIZE];            // int array q[] to queue integers
-   int size;                 // current size of things queued
+typedef struct {             // generic queue type
+   int q[Q_SIZE];            // integers are queued in q[] array
+   int size;                 // size is also where the tail is for new data
 } q_t;
+
 
 #endif

@@ -3,7 +3,7 @@
 #ifndef _PROC_H_
 #define _PROC_H_
 
-void ProcLoader();
+//void ProcLoader();
 void IdleProc();
 void UserProc();
 
