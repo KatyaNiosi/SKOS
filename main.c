@@ -78,11 +78,13 @@ void KernelMain(TF_t *TF_p) {
    char key;
 
    // First save the TF_p into the PCB of the current run process 
+   pcb[run_pid].TF_p = TF_p;
     
    switch(TF_p->intr_id){
       case TIMER_INTR:
           TimerISR();      //  service timer (as if it just occurred)
           // dismiss timer event ( send pic code as in timer intrupt lab ) 
+          outportb(0x20, 0x60);
           break;
       default:
           cons_printf("Kernel Panic: unknown intr ID (%d)!\n", TF_p->intr_id);
