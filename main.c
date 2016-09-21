@@ -9,6 +9,7 @@
 #include "tools.h"      // handy functions for Kernel
 #include "proc.h"       // processes such as IdleProc()
 #include "typedef.h"    // data types
+#include "entry.h"
 
 // kernel data stuff:
 int run_pid;             // currently-running PID, if -1, none running
@@ -90,7 +91,6 @@ void KernelMain(TF_t *TF_p) {
           cons_printf("Kernel Panic: unknown intr ID (%d)!\n", TF_p->intr_id);
           breakpoint();
    }
-
 
    if(cons_kbhit()) {
       key = cons_getchar();
