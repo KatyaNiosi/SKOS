@@ -22,7 +22,7 @@ void NewProcISR(int new_pid, func_ptr_t p) {
    // Step 2 Below
    // Set TF_p of PCB to highest mem location of the proc stack
    // then fill out its trap frame
-   pcb[new_pid].TF_p = &proc_stack[new_pid][0]; // correct mem address in the stack
+   pcb[new_pid].TF_p = (TF_t *)&proc_stack[new_pid][4032]; // correct mem address in the stack
 
    pcb[new_pid].TF_p->eflags = EF_DEFAULT_VALUE | EF_INTR;   
    pcb[new_pid].TF_p->cs = get_cs();
@@ -31,7 +31,7 @@ void NewProcISR(int new_pid, func_ptr_t p) {
    pcb[new_pid].TF_p->fs = get_fs();
    pcb[new_pid].TF_p->gs = get_gs();
 
-   pcb[new_pid].TF_p->eip = p; //set to where function pointer points to
+   pcb[new_pid].TF_p->eip = (unsigned int)p; //set to where function pointer points to
 
 }
 

@@ -25,7 +25,8 @@ int main() {
    InitKernelControl(); 
 
    new_pid = DeQ(&avail_q); // to dequeue avail_q to get an un-used pid
-   //NewProcISR(new_pid, IdleProc); // to create IdleProc
+   NewProcISR(new_pid, IdleProc); // to create IdleProc
+   
    ProcLoader(pcb[run_pid].TF_p);//load/ IdleProc
    //an infinite loop to alternate two functions:
    /* while(1) {  
