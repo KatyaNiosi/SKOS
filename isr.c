@@ -57,7 +57,7 @@ void TimerISR() {
    for(i=0; i<=PROC_NUM; i++)
    {
      if(pcb[i].state == SLEEP &&
-       pcb[run_pid].wake_time == system_time)
+       pcb[i].wake_time == system_time)
      {
          EnQ(i, &ready_q);    //append its PID to ready queue
          pcb[i].state = READY;
