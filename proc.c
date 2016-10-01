@@ -11,7 +11,7 @@ void IdleProc() {
    while(1){
      if(cons_kbhit() && cons_getchar() == 'b') breakpoint();
      cons_printf("0..");
-     for(i = 0; i < 166666; i++) IO_DELAY();
+     for(i = 0; i < 1666667; i++) IO_DELAY();
    }
 }
 
