@@ -19,6 +19,7 @@ typedef struct {             // PCB describes proc image
    state_t state;            // state of process
    int runtime,              // runtime since loaded to run
        lifespan,             // total runtime since created
+       wake_time,            // wake up time
        ppid,                 // parent PID
        cpid;                 // child PID
    TF_t *TF_p;               // points to trapframe of process

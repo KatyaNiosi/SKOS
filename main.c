@@ -13,6 +13,7 @@
 
 // kernel data stuff:
 int run_pid;             // currently-running PID, if -1, none running
+int system_time;
 q_t ready_q, avail_q;    // processes ready to run and ID's un-used
 pcb_t pcb[PROC_NUM];     // process table
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
@@ -28,11 +29,7 @@ int main() {
    NewProcISR(new_pid, IdleProc); // to create IdleProc
    
    ProcLoader(pcb[run_pid].TF_p);//load/ IdleProc
-   //an infinite loop to alternate two functions:
-   /* while(1) {  
-      ProcLoader();      // which is to simulate loading a process to run
-      KernelMain();       // to simulate kernel run periodically
-   }*/
+  
    return 0;             // not reached, but compiler needs it for syntax
 }
 
@@ -45,10 +42,15 @@ void InitKernelControl(){
     IDT_ptr = get_idt_base();
     SetEntry(32, TimerEntry);
     outportb(0x21, ~1);
+
+    SetEntry(48, GetPidEntry);
+    SetEntry(49, SleepEntry);
 }
 
 void InitKernelData() {
    int i;
+
+   system_time = 0;     
 
    MyBzero((char *)&ready_q, sizeof(ready_q));   // to clear the ready queue
    MyBzero((char *)&avail_q, sizeof(avail_q));   // to clear the available queue
@@ -88,6 +90,16 @@ void KernelMain(TF_t *TF_p) {
           // dismiss timer event ( send pic code as in timer intrupt lab ) 
           outportb(0x20, 0x60);
           break;
+
+      case GETPID_INTR:
+          GetPidISR();
+          break;
+
+
+      case SLEEP_INTR: 
+          SleepISR();
+          break;
+
       default:
           cons_printf("Kernel Panic: unknown intr ID (%d)!\n", TF_p->intr_id);
           breakpoint();

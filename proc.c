@@ -4,13 +4,7 @@
 #include "spede.h"      // for IO_DELAY() needed here below
 #include "extern.h"     // for currently-running pid needed below
 #include "proc.h"       // for prototypes of process functions
-
-/*void ProcLoader() {     // load a process to run, here simulated
-   if (run_pid == 0)
-      IdleProc();   // as if loads it and it runs
-   else             // it's one of the other processes
-      UserProc();   // as if loads it and it runs
-}*/
+#include "syscall.h"
 
 void IdleProc() {
    int i;
@@ -22,9 +16,11 @@ void IdleProc() {
 }
 
 void UserProc() {
-   int i;
+   int sleep_period;
+   sleep_period = GetPid()%4*75;
+
    while(1){
-      cons_printf("%d..", run_pid);
-      for(i = 0; i < 166666; i++) IO_DELAY();
+      cons_printf("%d..", GetPid());
+      Sleep(sleep_period);
    }
 }

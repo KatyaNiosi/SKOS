@@ -8,5 +8,6 @@
 void NewProcISR(int, func_ptr_t);
 void KillProcISR();
 void TimerISR();
-
+void SleepISR();
+void GetPidISR();
 #endif

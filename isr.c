@@ -50,6 +50,20 @@ void KillProcISR() {
 }        
 
 void TimerISR() {
+   int i;
+   
+   system_time++;
+
+   for(i=0; i<=PROC_NUM; i++)
+   {
+     if(pcb[i].state == SLEEP &&
+       pcb[run_pid].wake_time == system_time)
+     {
+         EnQ(i, &ready_q);    //append its PID to ready queue
+         pcb[i].state = READY;
+      }
+   }
+
    if(run_pid < 1)
      return;
 
@@ -61,5 +75,15 @@ void TimerISR() {
       pcb[run_pid].state = READY;
       EnQ(run_pid, &ready_q);    // queue its PID (run_pid) to ready_q
       run_pid = -1;             // no processes are running now
-    }
+   }
+}
+
+void GetPidISR() {
+  pcb[run_pid].TF_p->eax = (unsigned int)run_pid;
+}
+
+void SleepISR() {
+  pcb[run_pid].wake_time = system_time + pcb[run_pid].TF_p->eax;
+  pcb[run_pid].state = SLEEP;
+  run_pid = -1;
 }

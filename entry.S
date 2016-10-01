@@ -27,6 +27,16 @@ ENTRY(TimerEntry)
    pushl $TIMER_INTR
    jmp EnterKernel
 
+// entry for GetPid
+ENTRY(GetPidEntry)
+   pushl $GETPID_INTR
+   jmp EnterKernel
+
+// entry for Sleep
+ENTRY(SleepEntry)
+   pushl $SLEEP_INTR
+   jmp EnterKernel
+
 // save CPU context, call KernelMain()
 EnterKernel:
    pusha
