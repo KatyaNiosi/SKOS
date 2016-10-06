@@ -11,13 +11,13 @@ void IdleProc() {
    while(1){
      if(cons_kbhit() && cons_getchar() == 'b') breakpoint();
      cons_printf("0..");
-     for(i = 0; i < 1666667; i++) IO_DELAY();
+     for(i = 0; i < 166666; i++) IO_DELAY();
    }
 }
 
 void UserProc() {
    int sleep_period;
-   sleep_period = GetPid()%4*75;
+   sleep_period = 500 + (GetPid()-1)%4*500;
 
    while(1){
       cons_printf("%d..", GetPid());

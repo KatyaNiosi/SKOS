@@ -1,5 +1,6 @@
 // syscall.c
 // software interrupt/syscalls, i.e., kernel service API
+#include "syscall.h"
 
 int GetPid() {                   // no input, has return
    int pid;
