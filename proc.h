@@ -6,5 +6,7 @@
 //void ProcLoader();
 void IdleProc();
 void UserProc();
+void ProducerProc();
+void ConsumerProc();
 
 #endif

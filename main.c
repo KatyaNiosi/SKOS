@@ -18,6 +18,9 @@ q_t ready_q, avail_q;    // processes ready to run and ID's un-used
 pcb_t pcb[PROC_NUM];     // process table
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_ptr;
+sem_t sem[Q_SIZE];
+q_t avail_sem_q;
+int product_sem, product_num;
 
 int main() {
    int new_pid;
@@ -45,6 +48,9 @@ void InitKernelControl(){
 
     SetEntry(48, GetPidEntry);
     SetEntry(49, SleepEntry);
+    SetEntry(50, SemReqEntry);
+    SetEntry(51, SemWaitEntry);
+    SetEntry(52, SemPostEntry);
 }
 
 void InitKernelData() {
@@ -54,11 +60,18 @@ void InitKernelData() {
 
    MyBzero((char *)&ready_q, sizeof(ready_q));   // to clear the ready queue
    MyBzero((char *)&avail_q, sizeof(avail_q));   // to clear the available queue
+   MyBzero((char *)&avail_sem_q sizeof(avail_sem_q));
+
+   //clear avail_sem_q queue and fill it with available semaphore
+   //ID's (0 to Q_SIZE-1).
 
    for (i = 0; i <= Q_SIZE-1; i++)
-      EnQ(i, &avail_q);              // to enqueue i to avail_q
-
+   { 
+        EnQ(i, &avail_q);              // to enqueue i to avail_q
+        EnQ(i, &avail_sem_q);
+   }
    run_pid = 0;           // IdleProc is chosen to run first
+   product_num = -1;
 }
 
 void ProcScheduler() {  // to choose a run PID
@@ -95,9 +108,20 @@ void KernelMain(TF_t *TF_p) {
           GetPidISR();
           break;
 
-
       case SLEEP_INTR: 
           SleepISR();
+          break;
+      
+      case SEMREQ_INTR:
+          SemReqISR();
+          break;
+
+      case SEMWAIT_INTR:
+          SemWaitISR(TF_P->eax);
+          break;
+
+      case SEMPOST_INTR:
+          SemPostISR(TF_P->eax);
           break;
 
       default:
@@ -115,6 +139,13 @@ void KernelMain(TF_t *TF_p) {
               cons_printf("Kernel Panic: no more process!\n");
             else
               NewProcISR(new_pid, UserProc); // create a new process
+            break;
+         
+         case 'p':
+            // Producer 
+            break;
+         case 'q':
+            // Consumer
             break;
 
          case 'k':

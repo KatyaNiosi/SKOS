@@ -10,4 +10,8 @@ void KillProcISR();
 void TimerISR();
 void SleepISR();
 void GetPidISR();
+void SemReqISR();
+void SemWaitISR(int);
+void SemPostISR(int);
+
 #endif

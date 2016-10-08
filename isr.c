@@ -35,6 +35,18 @@ void NewProcISR(int new_pid, func_ptr_t p) {
 
 }
 
+void SemReqISR(){
+
+}
+
+void SemWaitISR(int sem_id){
+
+}
+
+void SemPostISR(int sem_id){
+
+}
+
 void KillProcISR() {
    if(run_pid == 0)   // IdleProc is exempted
       return;

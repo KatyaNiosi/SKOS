@@ -37,6 +37,21 @@ ENTRY(SleepEntry)
    pushl $SLEEP_INTR
    jmp EnterKernel
 
+// entry for Req Sem
+ENTRY(SemReqEntry)
+   pushl $SEMREQ_INTR
+   jmp EnterKernel
+
+// entry for Wait Sem
+ENTRY(SemWaitEntry)
+   pushl $SEMWAIT_INTR
+   jmp EnterKernel
+
+// entry for Post Sem
+ENTRY(SemPostEntry)
+   pushl $SEMPOST_INTR
+   jmp EnterKernel
+
 // save CPU context, call KernelMain()
 EnterKernel:
    pusha

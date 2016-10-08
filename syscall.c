@@ -21,3 +21,17 @@ void Sleep(int centi_seconds) {   // has input, no return
        : "%eax");                // will get pushed before asm("..."), and popped after
 }
 
+int SemReq(){
+    int num;
+    return num;
+}
+
+void SemWait(int num){
+
+
+}
+
+void SemPost(int num){
+
+
+}

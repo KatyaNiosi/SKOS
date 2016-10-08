@@ -6,6 +6,15 @@
 #include "proc.h"       // for prototypes of process functions
 #include "syscall.h"
 
+
+void ProducerProc(){
+
+}
+
+void ConsumerProc(){
+
+}
+
 void IdleProc() {
    int i;
    while(1){

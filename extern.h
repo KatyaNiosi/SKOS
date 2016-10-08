@@ -10,5 +10,8 @@ extern int system_time;
 extern q_t ready_q, avail_q;        // created/ready to run, and available/un-used PID's
 extern pcb_t pcb[PROC_NUM];         // process table
 extern char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
+extern sem_t sem[Q_SIZE];
+extern q_t avail_sem_q;
+extern int product_sum, product_num;
 
 #endif
