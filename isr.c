@@ -36,10 +36,23 @@ void NewProcISR(int new_pid, func_ptr_t p) {
 }
 
 void SemReqISR(){
+   int new_pid = DeQ(&avail_sem_q);
+   // Return to process via its trapframe
+   // If no semaphore is left return -1 
+   if(new_pid == -1){
+
+   }
+   // Segmaphore is to be initalized to zero bytes    
+   MyBzero((char *)&sem[new_pid], sizeof(sem_t));
 
 }
 
 void SemWaitISR(int sem_id){
+   if(sem[sem_id].count > 0){
+      sem[sem_id].count--;
+   }else{
+      EnQ(product_sem, &
+   }
 
 }
 

@@ -22,16 +22,28 @@ void Sleep(int centi_seconds) {   // has input, no return
 }
 
 int SemReq(){
-    int num;
+   int num;
+
+   asm("int $50; movl %%eax, %0"
+      : "=g" (num)
+      :
+      : "%eax");
+
     return num;
 }
 
 void SemWait(int num){
-
+   asm("movl %0, %%eax; int $51"
+      :
+      : "g" (num) 
+      : "%eax");
 
 }
 
 void SemPost(int num){
-
+   asm("movl %0, %%eax; int %52"
+      :
+      : "g" (num)
+      : "%eax");
 
 }

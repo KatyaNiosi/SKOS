@@ -142,10 +142,12 @@ void KernelMain(TF_t *TF_p) {
             break;
          
          case 'p':
-            // Producer 
+            // Producer
+            producerISR();
             break;
          case 'q':
             // Consumer
+            consumerISR();
             break;
 
          case 'k':
