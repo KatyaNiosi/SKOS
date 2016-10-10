@@ -114,6 +114,7 @@ void KernelMain(TF_t *TF_p) {
       
       case SEMREQ_INTR:
           SemReqISR();
+          breakpoint();
           break;
 
       case SEMWAIT_INTR:
@@ -143,6 +144,7 @@ void KernelMain(TF_t *TF_p) {
          */
          case 'p':
             // Producer
+            breakpoint();
             ProducerProc();
             break;
          case 'c':

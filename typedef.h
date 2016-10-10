@@ -32,7 +32,7 @@ typedef struct {             // generic queue type
 } q_t;
 
 typedef struct{
-  q_t wait;
+  q_t wait_q;
   int count;
 }sem_t;
 #endif

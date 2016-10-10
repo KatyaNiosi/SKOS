@@ -37,50 +37,42 @@ void NewProcISR(int new_pid, func_ptr_t p) {
 
 void SemReqISR(){
    
-   int new_pid = DeQ(&avail_sem_q);
-   // Return to process via its trapframe
+   int new_sem = DeQ(&avail_sem_q);
+
    // If no semaphore is left return -1 
-   MyBzero((char *)&pcb[product_sem], sizeof(pcb_t));
-   MyBzero(&proc_stack[product_sem][0], PROC_STACK_SIZE);
+   if (new_sem == -1)
+     pcb[run_pid].TF_p->eax = -1;
 
-   pcb[product_sem].state = READY;
+   // Return to process via its trapframe
+   pcb[run_pid].TF_p->eax = new_sem;
 
-   // Segmaphore is to be initalized to zero bytes    
-   MyBzero((char *)&sem[product_sem], sizeof(sem_t));
+   // Semaphore is to be initalized to zero bytes    
+   MyBzero((char *)&sem[new_sem], sizeof(sem_t));
    
-   pcb[new_pid].TF_p = (TF_t *)&proc_stack[product_sem][4032]; // correct mem address in the stack
-   
-   pcb[new_pid].TF_p->eflags = EF_DEFAULT_VALUE | EF_INTR;
-   pcb[new_pid].TF_p->eax = (unsigned int)new_pid;
-   pcb[new_pid].TF_p->cs = get_cs();
-   pcb[new_pid].TF_p->ds = get_ds();
-   pcb[new_pid].TF_p->es = get_es();
-   pcb[new_pid].TF_p->fs = get_fs();
-   pcb[new_pid].TF_p->gs = get_gs();
-   
-   product_sem++;
+   //product_sem++;
 }
 
 void SemWaitISR(int sem_id){
    int count = sem[sem_id].count;
+  
    if(count > 0){
       sem[sem_id].count--;
    }
    if(count == 0){
-      EnQ(sem_id, &(sem[sem_id].wait));
-      pcb[sem_id].state = WAIT;
-      product_num = -1;
+      EnQ(run_pid, &(sem[sem_id].wait_q));
+      pcb[run_pid].state = WAIT;
+      run_pid = -1;    
    }
 }
 
 void SemPostISR(int sem_id){
-   int waitSem = DeQ(&(sem[sem_id].wait));
-   if(waitSem == -1){
+   int wait_pid = DeQ(&(sem[sem_id].wait_q));
+   if(wait_pid == -1){
       sem[sem_id].count++;
    }
    else{
-      EnQ(waitSem, &ready_q);    // queue its PID (run_pid) to ready_q
-      pcb[waitSem].state = READY;
+      EnQ(wait_pid, &ready_q);    // queue its PID (run_pid) to ready_q
+      pcb[wait_pid].state = READY;
    }
 }
 
