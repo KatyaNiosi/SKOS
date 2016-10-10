@@ -133,27 +133,27 @@ void KernelMain(TF_t *TF_p) {
       key = cons_getchar();
 
       switch(key) {
-         case 'n':
+         /*case 'n':
             new_pid = DeQ(&avail_q); // dequeue avail_q for a new_pid
             if(new_pid== -1)
               cons_printf("Kernel Panic: no more process!\n");
             else
               NewProcISR(new_pid, UserProc); // create a new process
             break;
-         
+         */
          case 'p':
             // Producer
             producerISR();
             break;
-         case 'q':
+         case 'c':
             // Consumer
             consumerISR();
             break;
 
-         case 'k':
+         /*case 'k':
             KillProcISR();            // to kill the run_pid process
             break;
-
+         */
          case 'b':
             breakpoint();             //  brings up GDB prompt
             break;

@@ -36,28 +36,52 @@ void NewProcISR(int new_pid, func_ptr_t p) {
 }
 
 void SemReqISR(){
+   
    int new_pid = DeQ(&avail_sem_q);
    // Return to process via its trapframe
    // If no semaphore is left return -1 
-   if(new_pid == -1){
+   MyBzero((char *)&pcb[new_pid], sizeof(pcb_t));
+   MyBzero(&proc_stack[new_pid][0], PROC_STACK_SIZE);
 
-   }
+   pcb[new_pid].state = READY;
+
    // Segmaphore is to be initalized to zero bytes    
    MyBzero((char *)&sem[new_pid], sizeof(sem_t));
+   
+   pcb[new_pid].TF_p = (TF_t *)&proc_stack[new_pid][4032]; // correct mem address in the stack
+   
+   pcb[new_pid].TF_p->eflags = EF_DEFAULT_VALUE | EF_INTR;
+   pcb[new_pid].TF_p->eax = new_pid;
+   pcb[new_pid].TF_p->cs = get_cs();
+   pcb[new_pid].TF_p->ds = get_ds();
+   pcb[new_pid].TF_p->es = get_es();
+   pcb[new_pid].TF_p->fs = get_fs();
+   pcb[new_pid].TF_p->gs = get_gs();
 
+   pcb[new_pid].TF_p->eip = (unsigned int)producer; //set to where function pointer points to
 }
 
 void SemWaitISR(int sem_id){
-   if(sem[sem_id].count > 0){
+   int count = sem[sem_id].count;
+   if(count > 0){
       sem[sem_id].count--;
-   }else{
-      EnQ(product_sem, &
    }
-
+   if(count == 0){
+      EnQ(sem_id, &(sem[sem_id].wait));
+      pcb[sem_id].state = WAIT;
+      prod_num = -1;
+   }
 }
 
 void SemPostISR(int sem_id){
-
+   int waitSem = DeQ(&(sem[sem_id].wait));
+   if(waitSem == -1){
+      sem[sem_id].count++;
+   }
+   else{
+      EnQ(waitSem, &ready_q);    // queue its PID (run_pid) to ready_q
+      pcb[waitSem].state = READY;
+   }
 }
 
 void KillProcISR() {

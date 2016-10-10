@@ -5,7 +5,8 @@
 #include "extern.h"     // for currently-running pid needed below
 #include "proc.h"       // for prototypes of process functions
 #include "syscall.h"
-
+#include <spede/machine/io.h>
+#include <spede/machine/pic.h>
 
 unsigned short *vid_mem_ptr = (unsigned short *) 0xB8000+10*80+39;
 
