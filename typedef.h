@@ -16,11 +16,6 @@ typedef void (*func_ptr_t)(); // void-return function pointer type
 // this is the same as constants defines: AVAIL=0, READY=1, etc.
 typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, ZOMBIE, WAIT2CHILD} state_t;
 
-typedef struct {
-  q_t wait;
-  int count;
-} sem_t;
-
 typedef struct {             // PCB describes proc image
    state_t state;            // state of process
    int runtime,              // runtime since loaded to run
@@ -36,5 +31,8 @@ typedef struct {             // generic queue type
    int size;                 // size is also where the tail is for new data
 } q_t;
 
-
+typedef struct{
+  q_t wait;
+  int count;
+}sem_t;
 #endif

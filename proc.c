@@ -11,36 +11,38 @@
 unsigned short *vid_mem_ptr = (unsigned short *) 0xB8000+10*80+39;
 
 void ProducerProc(){
-  if(poduct_num == -1){
-    semReq();
-    semPost();
+  if(product_num == -1){
+    SemReq();
+    SemPost(product_sem);
     product_num = 0;
   }
   while(1){
-    semWait(product_sem);
+    int i;
+    SemWait(product_sem);
     cons_printf("\n++ Producer %d producing... ", GetPid());
-    for(int i = 0; i < 1999999; i++) IO_DELAY();
+    for(i = 0; i < 1999999; i++) IO_DELAY();
     product_num++;
     cons_printf(" product # is now %d ++", product_num);
     *vid_mem_ptr = product_num;
-    semPost(product_sem);
+    SemPost(product_sem);
   }
 }
 
 void ConsumerProc(){
    if(product_num == -1){
-     semReq();
-     semPost();
+     SemReq();
+     SemPost(product_sem);
      product_num = 0;
    }
    while(1){
-     semWait(product_sem);
+     int i;
+     SemWait(product_sem);
      cons_printf("\n-- Consumer %d consuming...", GetPid());
-     for(int i = 0; i < 1999999; i++) IO_DELAY();
+     for(i = 0; i < 1999999; i++) IO_DELAY();
      product_num--;
      cons_printf(" product # is now %d --", product_num);
      *vid_mem_ptr = product_num;
-     semPost(product_sem);
+     SemPost(product_sem);
    }
 }
 

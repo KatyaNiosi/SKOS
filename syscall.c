@@ -41,7 +41,7 @@ void SemWait(int num){
 }
 
 void SemPost(int num){
-   asm("movl %0, %%eax; int %52"
+   asm("movl %0, %%eax; int $52"
       :
       : "g" (num)
       : "%eax");

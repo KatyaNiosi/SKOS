@@ -60,7 +60,7 @@ void InitKernelData() {
 
    MyBzero((char *)&ready_q, sizeof(ready_q));   // to clear the ready queue
    MyBzero((char *)&avail_q, sizeof(avail_q));   // to clear the available queue
-   MyBzero((char *)&avail_sem_q sizeof(avail_sem_q));
+   MyBzero((char *)&avail_sem_q, sizeof(avail_sem_q));
 
    //clear avail_sem_q queue and fill it with available semaphore
    //ID's (0 to Q_SIZE-1).
@@ -72,6 +72,7 @@ void InitKernelData() {
    }
    run_pid = 0;           // IdleProc is chosen to run first
    product_num = -1;
+   product_sem = 0;
 }
 
 void ProcScheduler() {  // to choose a run PID
@@ -91,7 +92,6 @@ void ProcScheduler() {  // to choose a run PID
 }
 
 void KernelMain(TF_t *TF_p) {
-   int new_pid;
    char key;
 
    // First save the TF_p into the PCB of the current run process 
@@ -117,11 +117,11 @@ void KernelMain(TF_t *TF_p) {
           break;
 
       case SEMWAIT_INTR:
-          SemWaitISR(TF_P->eax);
+          SemWaitISR(TF_p->eax);
           break;
 
       case SEMPOST_INTR:
-          SemPostISR(TF_P->eax);
+          SemPostISR(TF_p->eax);
           break;
 
       default:
@@ -143,11 +143,11 @@ void KernelMain(TF_t *TF_p) {
          */
          case 'p':
             // Producer
-            producerISR();
+            ProducerProc();
             break;
          case 'c':
             // Consumer
-            consumerISR();
+            ConsumerProc();
             break;
 
          /*case 'k':

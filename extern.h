@@ -12,6 +12,6 @@ extern pcb_t pcb[PROC_NUM];         // process table
 extern char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 extern sem_t sem[Q_SIZE];
 extern q_t avail_sem_q;
-extern int product_sum, product_num;
+extern int product_sem, product_num;
 
 #endif
