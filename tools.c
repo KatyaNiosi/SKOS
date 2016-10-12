@@ -42,11 +42,12 @@ int DeQ(q_t *p) { // return -1 if q is empty
 
    dequeue_proc = p->q[0]; //save the process to be dequeued
 
+   p->size--;
+   //decrement available queue size
+ 
    for (i = 0; i < p->size; i++)
      p->q[i] = p->q[i+1];   //shift the queue by 1 to the head
 
-   //decrement available queue size
-   p->size--;
 
    return dequeue_proc;
 

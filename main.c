@@ -93,7 +93,7 @@ void ProcScheduler() {  // to choose a run PID
 
 void KernelMain(TF_t *TF_p) {
    char key;
-
+   int new_pid;
    // First save the TF_p into the PCB of the current run process 
    pcb[run_pid].TF_p = TF_p;
     
@@ -114,7 +114,6 @@ void KernelMain(TF_t *TF_p) {
       
       case SEMREQ_INTR:
           SemReqISR();
-          breakpoint();
           break;
 
       case SEMWAIT_INTR:
@@ -144,14 +143,20 @@ void KernelMain(TF_t *TF_p) {
          */
          case 'p':
             // Producer
-            breakpoint();
-            ProducerProc();
+            new_pid = DeQ(&avail_q); // dequeue avail_q for a new_pid
+            if(new_pid== -1)
+              cons_printf("Kernel Panic: no more process!\n");
+            else
+              NewProcISR(new_pid, ProducerProc); // create a new process
             break;
          case 'c':
             // Consumer
-            ConsumerProc();
+            new_pid = DeQ(&avail_q); // dequeue avail_q for a new_pid
+            if(new_pid== -1)
+              cons_printf("Kernel Panic: no more process!\n");
+            else
+              NewProcISR(new_pid, ConsumerProc); // create a new process
             break;
-
          /*case 'k':
             KillProcISR();            // to kill the run_pid process
             break;

@@ -40,9 +40,10 @@ void SemReqISR(){
    int new_sem = DeQ(&avail_sem_q);
 
    // If no semaphore is left return -1 
-   if (new_sem == -1)
+   if (new_sem == -1){
      pcb[run_pid].TF_p->eax = -1;
-
+     return;
+   }
    // Return to process via its trapframe
    pcb[run_pid].TF_p->eax = new_sem;
 
