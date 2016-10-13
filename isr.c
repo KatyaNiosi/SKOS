@@ -35,6 +35,10 @@ void NewProcISR(int new_pid, func_ptr_t p) {
 
 }
 
+void PrinterISR(){
+   SemPostISR(printer_sem);
+}
+
 void SemReqISR(){
    
    int new_sem = DeQ(&avail_sem_q);

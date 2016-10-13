@@ -20,7 +20,7 @@ char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_ptr;
 sem_t sem[Q_SIZE];
 q_t avail_sem_q;
-int product_sem, product_num;
+int product_sem, product_num, printer_sem;
 
 int main() {
    int new_pid;
@@ -106,6 +106,11 @@ void KernelMain(TF_t *TF_p) {
 
       case GETPID_INTR:
           GetPidISR();
+          break;
+      
+      case PRINTER_INTR:
+          PrinterISR();
+          outportb(0x20, 0x67); // Dismiss IRQ-7 is 39
           break;
 
       case SLEEP_INTR: 

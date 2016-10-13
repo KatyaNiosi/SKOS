@@ -6,6 +6,7 @@
 #include <spede/machine/pic.h>
 
 #define TIMER_INTR  32
+#define PRINTER_INTR 39
 #define GETPID_INTR 48
 #define SLEEP_INTR  49
 #define SEMREQ_INTR 50
@@ -29,6 +30,7 @@ extern void SleepEntry();
 extern void SemReqEntry();
 extern void SemWaitEntry();
 extern void SemPostEntry();
+extern void PrinterEntry();
 
 __END_DECLS
 

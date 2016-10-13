@@ -52,6 +52,10 @@ ENTRY(SemPostEntry)
    pushl $SEMPOST_INTR
    jmp EnterKernel
 
+ENTRY(PrinterEntry)
+   pushl $PRINTER_INTR
+   jmp EnterKernel
+
 // save CPU context, call KernelMain()
 EnterKernel:
    pusha
