@@ -20,6 +20,7 @@ void PrinterProc(){
    char key, *p;
    char hello[] = "Hello, World!\n\r";
 
+   //cons_printf("************************************");
    //Request for a printer_sem 
    printer_sem = DeQ(&avail_sem_q);
    
@@ -29,6 +30,7 @@ void PrinterProc(){
    for(i = 0; i < 50; i++) IO_DELAY();
 
    outportb(LPT1_BASE+LPT_CONTROL, PC_INIT | PC_SLCTIN | PC_IRQEN); // IRQ enable
+   for(i = 0; i < LOOP; i++) IO_DELAY();
 
    while(1){
      Sleep(1);
@@ -43,7 +45,7 @@ void PrinterProc(){
           default:
              cons_printf("Char: %c ", key);
        }
-       if(key != '1' || key != '2') continue;
+       if(key != '1' && key != '2') continue;
        p = hello;
        while(*p){
           outportb(LPT1_BASE+LPT_DATA, *p); // wite char to port DATA reg
@@ -55,20 +57,25 @@ void PrinterProc(){
           outportb(LPT1_BASE+LPT_CONTROL, code); // send back original code 
           if(key == '1'){
                 // busy-poll port status until ready
+                cons_printf("TEST1");
                 // if times out cons_printf a msg and break loop
                 for(i = 0; i < LOOP * 3; i++){
                     code = PS_ACK & inportb(LPT1_BASE + LPT_STATUS);
                     if(code == 0) break;
-                    IO_DELAY();
+                    for(i =0; i < 50; i++) IO_DELAY();
                 }
                 if(i == LOOP * 3){
                     cons_printf(">>> Time out while printing a char!\n");   
                     break;
                 }
           }
-          if(key == '2'){ 
-                SemWait(printer_sem);
-                // semaphore-wait on the printing semaphore
+          if(key == '2'){
+                if(printer_sem > 0){
+                    printer_sem--;
+                }else{
+                    SemWait(printer_sem);
+                  // semaphore-wait on the printing semaphore
+                }
           }
           p++;
        }

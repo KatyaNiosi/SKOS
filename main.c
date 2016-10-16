@@ -30,7 +30,10 @@ int main() {
 
    new_pid = DeQ(&avail_q); // to dequeue avail_q to get an un-used pid
    NewProcISR(new_pid, IdleProc); // to create IdleProc
-   
+
+   new_pid = DeQ(&avail_q);
+   NewProcISR(new_pid, PrinterProc);
+
    ProcLoader(pcb[run_pid].TF_p);//load/ IdleProc
   
    return 0;             // not reached, but compiler needs it for syntax
@@ -45,7 +48,8 @@ void InitKernelControl(){
     IDT_ptr = get_idt_base();
     SetEntry(32, TimerEntry);
     outportb(0x21, ~1);
-
+  
+    SetEntry(39, PrinterEntry);
     SetEntry(48, GetPidEntry);
     SetEntry(49, SleepEntry);
     SetEntry(50, SemReqEntry);
@@ -71,8 +75,9 @@ void InitKernelData() {
         EnQ(i, &avail_sem_q);
    }
    run_pid = 0;           // IdleProc is chosen to run first
-   product_num = -1;
-   product_sem = 0;
+   //product_num = -1;
+   //product_sem = 0;
+   printer_sem = 0;
 }
 
 void ProcScheduler() {  // to choose a run PID
@@ -134,18 +139,18 @@ void KernelMain(TF_t *TF_p) {
           breakpoint();
    }
 
-   if(cons_kbhit()) {
+   /*if(cons_kbhit()) {
       key = cons_getchar();
 
       switch(key) {
-         /*case 'n':
+         case 'n':
             new_pid = DeQ(&avail_q); // dequeue avail_q for a new_pid
             if(new_pid== -1)
               cons_printf("Kernel Panic: no more process!\n");
             else
               NewProcISR(new_pid, UserProc); // create a new process
             break;
-         */
+         
          case 'p':
             // Producer
             new_pid = DeQ(&avail_q); // dequeue avail_q for a new_pid
@@ -162,18 +167,18 @@ void KernelMain(TF_t *TF_p) {
             else
               NewProcISR(new_pid, ConsumerProc); // create a new process
             break;
-         /*case 'k':
+         case 'k':
             KillProcISR();            // to kill the run_pid process
             break;
-         */
+         
          case 'b':
             breakpoint();             //  brings up GDB prompt
             break;
-
+         
          case 'q':
            exit(0);    // quit the whole thing, MyOS.dli run
      }
-   }
+   }*/
    ProcScheduler();     // choose a new run_pid if needed
    ProcLoader(pcb[run_pid].TF_p);
 }

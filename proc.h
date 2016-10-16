@@ -8,5 +8,5 @@ void IdleProc();
 void UserProc();
 void ProducerProc();
 void ConsumerProc();
-
+void PrinterProc();
 #endif

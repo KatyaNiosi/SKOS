@@ -35,7 +35,7 @@ void NewProcISR(int new_pid, func_ptr_t p) {
 
 }
 
-void PrinterISR(){
+void PrinterISR(){   
    SemPostISR(printer_sem);
 }
 
