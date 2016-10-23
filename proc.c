@@ -10,7 +10,7 @@
 #include <spede/machine/pic.h>
 #include <spede/flames.h>
 
-#define LOOP 1666667
+#define LOOP 166666
 #define VGA (0x0f00 + '0') 
 
 unsigned short *vid_mem_ptr = (unsigned short *) 0xB8000+5*80+229;
@@ -29,11 +29,11 @@ void PrinterProc(){
    code = inportb(LPT1_BASE+LPT_STATUS);    //Ready Status
    for(i = 0; i < 50; i++) IO_DELAY();
 
-   outportb(LPT1_BASE+LPT_CONTROL, PC_INIT | PC_SLCTIN | PC_IRQEN); // IRQ enable
-   for(i = 0; i < LOOP; i++) IO_DELAY();
+   outportb(LPT1_BASE+LPT_CONTROL, PC_INIT | PC_SLCTIN); // | PC_IRQEN); // IRQ enable
+//   for(i = 0; i < LOOP; i++) IO_DELAY();
 
    while(1){
-     Sleep(1);
+     Sleep(100);
      if(!cons_kbhit()) continue;
        key = cons_getchar();
        switch(key){
@@ -45,37 +45,40 @@ void PrinterProc(){
           default:
              cons_printf("Char: %c ", key);
        }
+
        if(key != '1' && key != '2') continue;
+       
        p = hello;
        while(*p){
-          outportb(LPT1_BASE+LPT_DATA, *p); // wite char to port DATA reg
+          outportb(LPT1_BASE+LPT_DATA, *p); // write char to port DATA reg
           code = inportb(LPT1_BASE+LPT_CONTROL); // read port COTROL reg
           
           outportb(LPT1_BASE+LPT_CONTROL, code | PC_STROBE); // write with STROBE 
           for(i = 0; i < 50; i++) IO_DELAY(); // Need delay
           
           outportb(LPT1_BASE+LPT_CONTROL, code); // send back original code 
+         
           if(key == '1'){
                 // busy-poll port status until ready
-                cons_printf("TEST1");
-                // if times out cons_printf a msg and break loop
                 for(i = 0; i < LOOP * 3; i++){
                     code = PS_ACK & inportb(LPT1_BASE + LPT_STATUS);
                     if(code == 0) break;
-                    for(i =0; i < 50; i++) IO_DELAY();
+                    IO_DELAY();
                 }
+                
+                // if times out cons_printf a msg and break loop
                 if(i == LOOP * 3){
                     cons_printf(">>> Time out while printing a char!\n");   
                     break;
                 }
           }
           if(key == '2'){
-                if(printer_sem > 0){
+                // semaphore-wait on the printing semaphore
+              /*  if(printer_sem > 0){
                     printer_sem--;
-                }else{
-                    SemWait(printer_sem);
-                  // semaphore-wait on the printing semaphore
-                }
+                }else{*/
+                SemWait(printer_sem);
+             
           }
           p++;
        }

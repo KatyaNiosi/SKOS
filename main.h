@@ -9,6 +9,6 @@ void InitKernelData();
 void ProcScheduler();
 void KernelMain(TF_t *);
 void InitKernelControl();
-void SetEntry();
+void SetEntry(int, void ());
 
 #endif
