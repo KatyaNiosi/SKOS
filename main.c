@@ -46,10 +46,12 @@ void SetEntry(int entry_num, func_ptr_t func_ptr){
 
 void InitKernelControl(){
     IDT_ptr = get_idt_base();
+    
     SetEntry(TIMER_INTR, TimerEntry);
-    outportb(0x21, ~1);
-  
     SetEntry(PRINTER_INTR, PrinterEntry);
+    
+    outportb(0x21, 0x7E);
+  
     SetEntry(GETPID_INTR, GetPidEntry);
     SetEntry(SLEEP_INTR, SleepEntry);
     SetEntry(SEMREQ_INTR, SemReqEntry);
@@ -75,7 +77,7 @@ void InitKernelData() {
         EnQ(i, &avail_sem_q);
    }
    run_pid = 0;           // IdleProc is chosen to run first
-   printer_sem = 0;
+  // printer_sem = 0;
 }
 
 void ProcScheduler() {  // to choose a run PID

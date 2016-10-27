@@ -10,7 +10,7 @@
 #include <spede/machine/pic.h>
 #include <spede/flames.h>
 
-#define LOOP 166666
+#define LOOP 1666667
 #define VGA (0x0f00 + '0') 
 
 unsigned short *vid_mem_ptr = (unsigned short *) 0xB8000+5*80+229;
@@ -26,10 +26,10 @@ void PrinterProc(){
    
    //initalize printer port (check printer power, cable, and paper)
    outportb(LPT1_BASE+LPT_CONTROL, PC_SLCTIN); //CONTROL reg, Select interupt 
-   code = inportb(LPT1_BASE+LPT_STATUS);    //Ready Status
+   code = inportb(LPT1_BASE+LPT_STATUS);    //Read Status
    for(i = 0; i < 50; i++) IO_DELAY();
 
-   outportb(LPT1_BASE+LPT_CONTROL, PC_INIT | PC_SLCTIN); // | PC_IRQEN); // IRQ enable
+   outportb(LPT1_BASE+LPT_CONTROL, PC_INIT | PC_SLCTIN | PC_IRQEN); // IRQ enable
 //   for(i = 0; i < LOOP; i++) IO_DELAY();
 
    while(1){
@@ -74,55 +74,16 @@ void PrinterProc(){
           }
           if(key == '2'){
                 // semaphore-wait on the printing semaphore
-              /*  if(printer_sem > 0){
-                    printer_sem--;
-                }else{*/
+                if(sem[printer_sem].count > 0){
+                    sem[printer_sem].count--;
+                }else{
                 SemWait(printer_sem);
-             
+                for (i = 0; i < 50; i++) IO_DELAY();
+                }
           }
           p++;
        }
     }
-}
-
-void ProducerProc(){
-  unsigned short ch = VGA;
-  if(product_num == -1){
-    SemReq();
-    SemPost(product_sem);
-    product_num = 0;
-  }
-  while(1){
-    int i;
-    SemWait(product_sem);
-    cons_printf("\n++ Producer %d producing...", GetPid());
-    for(i = 0; i < 1666667; i++) IO_DELAY();
-    product_num++;
-    cons_printf(" product # is now %d ++", product_num);
-    outportb(0x20, 0x60);
-    *vid_mem_ptr = ch + product_num;//product_num;
-    SemPost(product_sem);
-  }
-}
-
-void ConsumerProc(){
-  unsigned short ch = VGA;
-  if(product_num == -1){
-     SemReq();
-     SemPost(product_sem);
-     product_num = 0;
-   }
-   while(1){
-     int i;
-     SemWait(product_sem);
-     cons_printf("\n-- Consumer %d consuming...", GetPid());
-     for(i = 0; i < 1666667; i++) IO_DELAY();
-     product_num--;
-     cons_printf(" product # is now %d --", product_num);
-     outportb(0x20, 0x60);
-     *vid_mem_ptr = ch + product_num;
-     SemPost(product_sem);
-   }
 }
 
 void IdleProc() {
