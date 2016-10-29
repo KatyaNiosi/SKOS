@@ -35,4 +35,15 @@ typedef struct{
   q_t wait_q;
   int count;
 }sem_t;
+
+typedef struct {
+   q_t in_q,
+       out_q,
+       echo_q;
+   int in_q_sem,
+       out_q_sem,
+       echo_flag,
+       out_flag,
+       io_base;
+} term_t;
 #endif

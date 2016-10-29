@@ -54,7 +54,6 @@ void SemReqISR(){
    // Semaphore is to be initalized to zero bytes    
    MyBzero((char *)&sem[new_sem], sizeof(sem_t));
    
-   //product_sem++;
 }
 
 void SemWaitISR(int sem_id){

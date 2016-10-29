@@ -56,6 +56,16 @@ ENTRY(PrinterEntry)
    pushl $PRINTER_INTR
    jmp EnterKernel
 
+// entry for Term1
+ENTRY(Term1Entry)
+   pushl $TERM1_INTR
+   jmp EnterKernel
+
+// entry for Term2
+ENTRY(Term2Entry)
+   pushl $TERM2_INTR
+   jmp EnterKernel
+
 // save CPU context, call KernelMain()
 EnterKernel:
    pusha

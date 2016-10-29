@@ -13,5 +13,5 @@ extern char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 extern sem_t sem[Q_SIZE];
 extern q_t avail_sem_q;
 extern int product_sem, product_num, printer_sem;
-
+extern term_t term[3];
 #endif

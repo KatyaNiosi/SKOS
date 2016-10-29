@@ -10,12 +10,9 @@
 #include <spede/machine/pic.h>
 #include <spede/flames.h>
 
-#define LOOP 1666667
-#define VGA (0x0f00 + '0') 
+#define LOOP 1666667 
 
-unsigned short *vid_mem_ptr = (unsigned short *) 0xB8000+5*80+229;
-
-void PrinterProc(){
+/*void PrinterProc(){
    int i, code;
    char key, *p;
    char hello[] = "Hello, World!\n\r";
@@ -84,6 +81,40 @@ void PrinterProc(){
           p++;
        }
     }
+}
+*/
+void TermProc(){
+   char a_str[101];   // a handy string
+   int i, baud_rate, divisor;
+
+   term[0].out_q_sem = SemReq(); //request for out_q_sem
+
+   for (i = 0; i < Q_SIZE; i++)  //boost the count to 20 
+      SemPost(term[0].out_q_sem);
+    
+   term[0].in_q_sem = SemReq();  //request for in_q_sem 
+   term[0].echo_flag = 1;
+   term[0].out_flag = 1;
+
+   //A.set baud rate 9600
+   BAUD_RATE = 9600;
+   divisor = 115200/BAUD_RATE;  //time period of each baud
+   outportb(term[0].io_base + CFCR, CFCR_DLAB);  //CFCR_DLAB 0X80
+   outportb(term[0].io_base + BAUDLO, LOBYTE(divisor));
+   outportb(term[0].io_base + BAUDHI, HIBYTE(divisor));
+
+   //B. set CFCR: 7-E-1 (7 data bits, even parity, 1 stop bit)
+   outportb(term[0].io_base + CFCR, CFCR_PEVEN|CFCR_PENAB|CFCR_7BITS);
+   outportb(term[0].io_base + IER, 0);
+
+   //C. raise DTR, RTS of the serial port to start read/write
+   outportb(term[0].io_base + MCR, MCR_DTR|MCR_RTS|MCR_IENABLE);
+   IO_DELAY();
+   outportb(term[0].io_base + IER, IER_ERXRDY|IER_ETXRDY); //enable TX/RX events
+   Sleep(50);
+
+   while(1) {
+
 }
 
 void IdleProc() {

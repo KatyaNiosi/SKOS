@@ -12,6 +12,9 @@
 #define SEMREQ_INTR 50
 #define SEMWAIT_INTR 51
 #define SEMPOST_INTR 52
+#define TERM1_INTR 35
+#define TERM2_INTR 36
+
 #define KERNEL_CODE 0x08         // kernel's code segment
 #define KERNEL_DATA 0x10         // kernel's data segment
 #define KERNEL_STACK_SIZE 16384  // kernel's stack byte size
@@ -30,7 +33,8 @@ extern void SleepEntry();
 extern void SemReqEntry();
 extern void SemWaitEntry();
 extern void SemPostEntry();
-extern void PrinterEntry();
+extern void Term1Entry();
+extern void Term2Entry();
 
 __END_DECLS
 

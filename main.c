@@ -20,7 +20,7 @@ char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_ptr;
 sem_t sem[Q_SIZE];
 q_t avail_sem_q;
-int product_sem, product_num, printer_sem;
+term_t term[3];
 
 int main() {
    int new_pid;
@@ -32,7 +32,7 @@ int main() {
    NewProcISR(new_pid, IdleProc); // to create IdleProc
 
    new_pid = DeQ(&avail_q);
-   NewProcISR(new_pid, PrinterProc);
+   NewProcISR(new_pid, TermProc);
 
    ProcLoader(pcb[run_pid].TF_p);//load/ IdleProc
   
@@ -48,9 +48,10 @@ void InitKernelControl(){
     IDT_ptr = get_idt_base();
     
     SetEntry(TIMER_INTR, TimerEntry);
-    SetEntry(PRINTER_INTR, PrinterEntry);
+    SetEntry(TERM1_INTR, Term1Entry);
+    SetEntry(TERM2_INTR, Term2Entry);
     
-    outportb(0x21, 0x7E);
+    outportb(0x21, 0xE6);
   
     SetEntry(GETPID_INTR, GetPidEntry);
     SetEntry(SLEEP_INTR, SleepEntry);
@@ -67,6 +68,12 @@ void InitKernelData() {
    MyBzero((char *)&ready_q, sizeof(ready_q));   // to clear the ready queue
    MyBzero((char *)&avail_q, sizeof(avail_q));   // to clear the available queue
    MyBzero((char *)&avail_sem_q, sizeof(avail_sem_q));
+   MyBzero((char *)&term, sizeof(term_t)*3);
+
+   // set terminals' io_base
+   term[0].io_base = 0x2f8;
+   term[1].io_base = 0x3e8;
+   term[2]. io_base = 0x2e8;
 
    //clear avail_sem_q queue and fill it with available semaphore
    //ID's (0 to Q_SIZE-1).
@@ -131,6 +138,16 @@ void KernelMain(TF_t *TF_p) {
 
       case SEMPOST_INTR:
           SemPostISR(TF_p->eax);
+          break;
+
+      case TERM1_INTR:
+          TermISR();
+          outportb(0x20, 0x63);
+          break;
+
+      case TERM2_INTR:
+          TermISR();
+          outportb(ox20, 0x64);
           break;
 
       default:
