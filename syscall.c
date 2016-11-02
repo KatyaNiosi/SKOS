@@ -47,3 +47,7 @@ void SemPost(int num){
       : "%eax");
 
 }
+
+void TripTermIRQ(){
+  asm("int $35");
+}

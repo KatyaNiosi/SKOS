@@ -5,4 +5,5 @@
 
 void IdleProc();
 void UserProc();
+void TermProc();
 #endif

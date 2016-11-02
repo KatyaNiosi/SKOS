@@ -83,6 +83,39 @@
     }
 }
 */
+void TermIn(char *str){
+  char ch, *p;
+  p = str;
+
+  while(1){
+     SemWait(term[0].in_q_sem);
+     ch = DeQ(&term[0].in_q);
+     if(ch == 'r')
+       break;
+     *p = ch;
+     p++;
+   }
+ *p = '\0';
+}
+
+void TermOut(char *str){
+  char *p;
+  p = str;
+
+  while(*p){
+    SemWait(term[0].out_q_sem);
+    EnQ(*p, &term[0].out_q);
+   
+   if (*p == '\n'){
+      SemWait(term[0].out_q_sem);
+      EnQ('\r', &term[0].out_q);
+    }
+ 
+    TripTermIRQ();  //issue IRQ event to send to terminal
+    p++;
+  }
+}
+
 void TermProc(){
    char a_str[101];   // a handy string
    int i, baud_rate, divisor;
@@ -97,8 +130,8 @@ void TermProc(){
    term[0].out_flag = 1;
 
    //A.set baud rate 9600
-   BAUD_RATE = 9600;
-   divisor = 115200/BAUD_RATE;  //time period of each baud
+   baud_rate = 9600;
+   divisor = 115200/baud_rate;  //time period of each baud
    outportb(term[0].io_base + CFCR, CFCR_DLAB);  //CFCR_DLAB 0X80
    outportb(term[0].io_base + BAUDLO, LOBYTE(divisor));
    outportb(term[0].io_base + BAUDHI, HIBYTE(divisor));
@@ -114,8 +147,27 @@ void TermProc(){
    Sleep(50);
 
    while(1) {
+      MyStrcpy(a_str,"\n\n\nHello, World! Team SKOS at Terminal 1\n");
+      TermOut(a_str);
+      MyStrcpy(a_str, "\nWhat is your name?\n\n");
+      TermOut(a_str);
+      TermIn(a_str);
 
-}
+      cons_printf("\nTerm 1 Name: %s", a_str);
+
+      MyStrcpy(a_str, "\nHow is your farther?\n\n");
+      TermOut(a_str);
+      TermIn(a_str);
+
+      cons_printf("Term 1 Father Status: %s",a_str);
+      
+      MyStrcpy(a_str, "\nCan you elaborate that?\n\n");
+      TermOut(a_str);
+      TermIn(a_str);
+
+      cons_printf("\nTerm 1 Replied: %s", a_str);
+   }
+ }
 
 void IdleProc() {
    int i;

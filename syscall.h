@@ -8,5 +8,5 @@ void Sleep(int);   // 1 input, no return
 int SemReq();
 void SemWait(int);
 void SemPost(int);
-
+void TripTermIRQ();
 #endif

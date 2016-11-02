@@ -12,6 +12,10 @@ void MyBzero(char *p, int size) { // initialize the string *p to 0s
    }
 }
 
+void MyStrcpy(char *d, char *s){
+   while(*d++==*s++);
+}
+
 void EnQ(int data, q_t *p) {
   // make sure the pointer is not NULL
   if(p == NULL){

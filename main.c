@@ -84,7 +84,7 @@ void InitKernelData() {
         EnQ(i, &avail_sem_q);
    }
    run_pid = 0;           // IdleProc is chosen to run first
-  // printer_sem = 0;
+
 }
 
 void ProcScheduler() {  // to choose a run PID
@@ -119,11 +119,6 @@ void KernelMain(TF_t *TF_p) {
           GetPidISR();
           break;
       
-      case PRINTER_INTR:
-          PrinterISR();
-          outportb(0x20, 0x67); // Dismiss IRQ-7 is 0x67
-          break;
-
       case SLEEP_INTR: 
           SleepISR();
           break;
@@ -147,7 +142,7 @@ void KernelMain(TF_t *TF_p) {
 
       case TERM2_INTR:
           TermISR();
-          outportb(ox20, 0x64);
+          outportb(0x20, 0x64);
           break;
 
       default:

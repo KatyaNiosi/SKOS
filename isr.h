@@ -13,6 +13,6 @@ void GetPidISR();
 void SemReqISR();
 void SemWaitISR(int);
 void SemPostISR(int);
-void PrinterISR();
+void TermISR();
 
 #endif

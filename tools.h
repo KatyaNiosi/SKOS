@@ -6,6 +6,7 @@
 #include "typedef.h" // q_t needs be defined in code below
 
 void MyBzero(char *, int);
+void MyStrcpy(char *, char *);
 int DeQ(q_t *);
 void EnQ(int, q_t *);
 
