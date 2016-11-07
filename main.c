@@ -34,6 +34,9 @@ int main() {
    new_pid = DeQ(&avail_q);
    NewProcISR(new_pid, TermProc);
 
+   new_pid = DeQ(&avail_q);
+   NewProcISR(new_pid, TermProc);
+
    ProcLoader(pcb[run_pid].TF_p);//load/ IdleProc
   
    return 0;             // not reached, but compiler needs it for syntax

@@ -13,7 +13,8 @@ void MyBzero(char *p, int size) { // initialize the string *p to 0s
 }
 
 void MyStrcpy(char *d, char *s){
-   while(*d++==*s++);
+   while((*d++=*s++)!=0);
+   *d = '\0';
 }
 
 void EnQ(int data, q_t *p) {
@@ -25,6 +26,7 @@ void EnQ(int data, q_t *p) {
   // show error msg and return if queue's already full
   if (p->size == Q_SIZE){
       cons_printf("The available queue is aleady full");
+      breakpoint();
       return;
   }
 

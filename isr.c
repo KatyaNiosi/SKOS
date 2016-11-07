@@ -35,62 +35,63 @@ void NewProcISR(int new_pid, func_ptr_t p) {
 
 }
 
-void TermOutHandler(){
+void TermOutHandler(int which){
   char ch = 0;
 
-  if(term[0].echo_q.size != 0)
-    ch = DeQ(&term[0].echo_q);
+  if(term[which].echo_q.size > 0)
+    ch = DeQ(&term[which].echo_q);
   else{
-    if(term[0].out_q.size != 0){
-      ch = DeQ(&term[0].out_q);
-      SemPostISR(term[0].out_q_sem);
+    if(term[which].out_q.size > 0){
+      ch = DeQ(&term[which].out_q);
+      SemPostISR(term[which].out_q_sem);
     }
   }
 
   if (ch != '\0'){
-    outportb(term[0].io_base + DATA, ch);
-    term[0].out_flag = 0;
+    outportb(term[which].io_base + DATA, ch);
+    term[which].out_flag = 0;
    }else{
-     term[0].out_flag = 1;
+     term[which].out_flag = 1;
    }
  }
 
- void TermInHandler(){
+ void TermInHandler(int which){
    char ch;
 
    //use 127 to mask out msb (get normal 7-bit ASCII range)
-   ch = inportb(term[0].io_base + DATA) & 0x7F; //mask 0111 1111
+   ch = inportb(term[which].io_base + DATA) & 0x7F; //mask 0111 1111
 
-   EnQ(ch, &term[0].in_q);
-   SemPostISR(term[0].in_q_sem);
+   EnQ(ch, &term[which].in_q);
+   SemPostISR(term[which].in_q_sem);
 
    if (ch == '\r'){
-     EnQ('\r', &term[0].echo_q);
-     EnQ('\n', &term[0].echo_q);
+     EnQ('\r', &term[which].echo_q);
+     EnQ('\n', &term[which].echo_q);
    } else{
-      if(term[0].echo_flag == 1)
-         EnQ(ch, &term[0].echo_q);
-      }
+      if(term[which].echo_flag == 1)
+         EnQ(ch, &term[which].echo_q);
+    }
  }
 
 void TermISR() {
-  int code;
+  int code, which;
   
-  code = inportb(term[0].io_base + IIR);
+  for(which = 0; which < 3; which++){
+     code = inportb(term[which].io_base + IIR);
 
-  switch(code){
-    case IIR_TXRDY:
-       TermOutHandler();
-       break;
+     switch(code){
+       case IIR_TXRDY:
+         TermOutHandler(which);
+         break;
 
-    case IIR_RXRDY:
-       TermInHandler();
-       break;
+       case IIR_RXRDY:
+         TermInHandler(which);
+         break;
+     }
+    if(term[which].out_flag == 1)
+      TermOutHandler(which);
   }
-
-  if(term[0].out_flag == 1)
-    TermOutHandler();
-}
+} 
 
 void SemReqISR(){
    
