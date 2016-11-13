@@ -14,7 +14,10 @@
 #define SEMPOST_INTR 52
 #define TERM1_INTR 35
 #define TERM2_INTR 36
-
+#define FSTAT_INTR 53
+#define FOPEN_INTR 54
+#define FREAD_INTR 55
+#define FCLOSE_INTR 56
 #define KERNEL_CODE 0x08         // kernel's code segment
 #define KERNEL_DATA 0x10         // kernel's data segment
 #define KERNEL_STACK_SIZE 16384  // kernel's stack byte size
@@ -35,7 +38,10 @@ extern void SemWaitEntry();
 extern void SemPostEntry();
 extern void Term1Entry();
 extern void Term2Entry();
-
+extern void FstatEntry();
+extern void FopenEntry();
+extern void FreadEntry();
+extern void FcloseEntry();
 __END_DECLS
 
 #endif

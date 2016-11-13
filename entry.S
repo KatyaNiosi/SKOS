@@ -66,6 +66,22 @@ ENTRY(Term2Entry)
    pushl $TERM2_INTR
    jmp EnterKernel
 
+ENTRY(FstatEntry)
+   pushl $FSTAT_INTR
+   jmp EnterKernel
+
+ENTRY(FopenEntry)
+   pushl $FOPEN_INTR
+   jmp EnterKernel
+
+ENTRY(FreadEntry)
+   pushl $FREAD_INTR
+   jmp EnterKernel
+
+ENTRY(FcloseEntry)
+   pushl $FCLOSE_INTR
+   jmp EnterKernel
+
 // save CPU context, call KernelMain()
 EnterKernel:
    pusha

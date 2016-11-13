@@ -46,8 +46,9 @@ void TermOut(char *str, int which){
 
 void TermProc(){
    char a_str[100];   // a handy string
-   int i, baud_rate, divisor;
+   int i, baud_rate, divisor, which;
    int local, remote;
+   char login[101], passwd[101], cmd_str[101];
 
    local = GetPid() - 1;
    remote = (local + 1)%2;   //0->1   1->0
@@ -88,8 +89,45 @@ void TermProc(){
       TermOut("(Remote)", remote);
       TermOut(a_str, remote);
       TermOut("\n", remote);
+
+    
+      while(1){ // loop for login
+          cons_printf("Enter Username");
+          cons_printf("Enter Password");
+          int len = MyStrlen(a_str);
+          if(1 == MyStrcmp(a_str, "pizza" , len)){
+            break;
+          }
+      }
+      while(1){ // loop for shell command
+          cons_printf("Enter Command");
+          TermIn(a_str, local);
+          which = remote;
+          int len = MyStrlen(a_str);
+          if(a_str == NULL) continue;
+          else if(1 == MyStrcmp(a_str, "logout", len)) break;
+          else if(1 == MyStrcmp(a_str, "ls", len)){
+              // ls command
+              TermLsCmd(a_str, which);
+          }
+          else if(1 == MyStrcmp(a_str, "cat", len)){
+              // cat command
+              TermCatCmd(a_str, which);
+          }
+          else{
+              cons_printf("Command Not Known");
+          }
+      }
    }
- }
+}
+
+void TermCatCmd(char *cmd_str, int which){
+
+}
+
+void TermLsCmd(char *cmd_str, int which){
+
+}
 
 void IdleProc() {
    int i;

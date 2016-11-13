@@ -10,6 +10,7 @@
 #include "proc.h"       // processes such as IdleProc()
 #include "typedef.h"    // data types
 #include "entry.h"
+#include "filesys_data.h"
 
 // kernel data stuff:
 int run_pid;             // currently-running PID, if -1, none running
@@ -76,7 +77,7 @@ void InitKernelData() {
    // set terminals' io_base
    term[0].io_base = 0x2f8;
    term[1].io_base = 0x3e8;
-   term[2]. io_base = 0x2e8;
+   term[2].io_base = 0x2e8;
 
    //clear avail_sem_q queue and fill it with available semaphore
    //ID's (0 to Q_SIZE-1).
@@ -146,6 +147,18 @@ void KernelMain(TF_t *TF_p) {
       case TERM2_INTR:
           TermISR();
           outportb(0x20, 0x64);
+          break;
+
+      case FSTAT_INTR:
+          break;
+
+      case FOPEN_INTR:
+          break;
+
+      case FREAD_INTR:
+          break;
+
+      case FCLOSE_INTR:
           break;
 
       default:

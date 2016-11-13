@@ -51,3 +51,13 @@ void SemPost(int num){
 void TripTermIRQ(){
   asm("int $35");
 }
+
+int Fopen(char *name){
+  int fd;
+  asm("movl %1, %%eax; int $54; movl %%ebx, %0"
+      : "=g" (fd)
+      : "g" ((int) name)
+      : "%eax" , "%ebx");
+  return fd;
+}
+
