@@ -61,3 +61,23 @@ int Fopen(char *name){
   return fd;
 }
 
+void Fstat(char *name, char *data){
+  asm("movl %0, %%eax; movl %1; %%ebx; int $53"
+      :
+      :"g" ((int)name), "g" ((int)data)
+      :"%eax" , "%ebx");
+}
+
+void Fread(int fd, char *data){
+  asm("movl %0, %%eax; movl %1, %%ebx; int $55"
+      : 
+      :"g" (fd) , "g" ((int)data)
+      :"%eax" , "%ebx");
+}
+
+void Fclose(int fd){
+  asm("movl %0, %%eax; int $56"
+      :
+      :"g" (fd)
+      : "%eax");
+}

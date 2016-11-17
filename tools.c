@@ -12,9 +12,40 @@ void MyBzero(char *p, int size) { // initialize the string *p to 0s
    }
 }
 
-void MyStrcpy(char *d, char *s){
-   while((*d++=*s++)!=0);
-   *d = '\0';
+void MyStrcpy(char *p, char *q, int size){
+   //while((*d++=*s++)!=0);
+   //*d = '\0';
+   while(size && *p != '\0' && p* == *q){
+      p++; q++; size--;
+   }
+   if(size == 0 || (*p == '\0' && *q == '\0'))
+     return 1;
+   else
+     return 0;
+}
+
+int MyStrlen(char *p){
+   int size = 0;
+   while(*p){ size++; p++; }
+   return size;
+}
+
+void MyMemcpy(char *dest, char *src, int size){
+  while(size && *src != '\0'){
+     *dest = *src;
+     dest++; src++; size --;
+  }
+}
+
+void Attr2Str(attr_t *attr_p, char *str){
+   char *name = (char *) (attr_p + 1);
+
+   sprintf(str, " ---- size=%4d name=%s\n", attr_p->size, name);
+   if(A_ISDIR(attr_p->mode) ) str[1] = 'd';
+   if(QBIT_ON(attr_p->mode, A_ROTH) ) str[2] = 'r';
+   if(QBIT_ON(attr_p->mode, A_WOTH) ) str[3] = 'w';
+   if(QBIT_ON(attr_p->mode, A_XOTH) ) str[4] = 'x';
+
 }
 
 void EnQ(int data, q_t *p) {
