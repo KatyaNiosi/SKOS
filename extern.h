@@ -15,4 +15,11 @@ extern q_t avail_sem_q;
 extern int product_sem, product_num, printer_sem;
 extern term_t term[3];
 
+extern char help_txt_data[];
+extern char note_txt_data[];
+extern char index_html_data[];
+extern char hello_html_data[];
+extern dir_t bin_dir[4];
+extern dir_t www_dir[8];
+extern dir_t root_dir[11];
 #endif

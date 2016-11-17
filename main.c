@@ -62,6 +62,10 @@ void InitKernelControl(){
     SetEntry(SEMREQ_INTR, SemReqEntry);
     SetEntry(SEMWAIT_INTR, SemWaitEntry);
     SetEntry(SEMPOST_INTR, SemPostEntry);
+    SetEntry(FSTAT_INTR, FstatEntry);
+    SetEntry(FOPEN_INTR, FopenEntry);
+    SetEntry(FREAD_INTR, FreadEntry);
+    SetEntry(FCLOSE_INTR, FcloseEntry);
 }
 
 void InitKernelData() {
@@ -150,15 +154,19 @@ void KernelMain(TF_t *TF_p) {
           break;
 
       case FSTAT_INTR:
+          FstatISR();
           break;
 
       case FOPEN_INTR:
+          FopenISR();
           break;
 
       case FREAD_INTR:
+          FreadISR();
           break;
 
       case FCLOSE_INTR:
+          FcloseISR();
           break;
 
       default:
