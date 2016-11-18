@@ -7,6 +7,109 @@
 #include "extern.h"
 #include "proc.h"
 
+
+// Search our (fixed size) table of file descriptors. returns fd_array[] index
+// if an unused entry is found, else -1 if all in use. if avail, then all
+// fields are initialized.
+// check ownership of fd and the fd is valid within range
+int CanAccessFD( int fd, int owner ) {
+   if( VALID_FD_RANGE(fd) && fd_array[fd].owner == owner) return 0;
+   return -1;     // not good
+}
+
+// go searching through a single dir for a name match. use MyStrcmp()
+// for case-insensitive compare. use '/' to separate directory components
+// if more after '/' and we matched a dir, recurse down there
+// RETURN: ptr to dir entry if found, else 0
+// once any dir matched, don't return name which dir was matched
+dir_t *FindNameSub( char *name, dir_t *this_dir ) {
+   dir_t *dir_p = this_dir;
+   int len = MyStrlen( name );
+   char *p;
+
+// if name is '.../...,' we decend into subdir
+   if( ( p = strchr( name, '/' ) ) != 0) len = p - name;  // p = to where / is (high mem)
+
+   for( ; dir_p->name; dir_p++ ) {
+//      if((unsigned int)dir_p->name > 0xdfffff) return 0; // tmp bug-fix patch
+
+      if( 1 == MyStrcmp( name, dir_p->name, len ) ) {
+         if( p && p[1] != 0 ) { // not ending with name, it's "name/..."
+// user is trying for a sub-dir. if there are more components, make sure this
+// is a dir. if name ends with "/" we don't check. thus "hello.html/" is legal
+            while( *p == '/' ) {
+               p++;                           // skipping trailing /'s in name
+               if( '\0' == *p ) return dir_p; // name "xxx/////" is actually legal
+            }
+
+// altho name given is "xxx/yyy," xxx is not a directory
+            if(dir_p->mode != MODE_DIR) return 0; // bug-fix patch for "cat h/in"
+
+            name = p;
+            return FindNameSub( name, (dir_t *)dir_p->data );
+         }
+         return dir_p;
+      }
+   }
+
+   return 0;   // no match found
+}
+
+int AllocFD( int owner ) {
+   int i;
+
+   for(i=0; i<MAX_FD; i++) {
+      if( -1 == fd_array[i].owner ) {
+         fd_array[i].owner = owner;
+         fd_array[i].offset = 0;
+         fd_array[i].item = 0;     // NULL is (void *)0, spede/stdlib.h
+
+         return i;
+      }
+   }
+
+   return -1;   // no free file descriptors
+}
+
+void FreeFD( int fd ) {  // mark a file descriptor as now free
+   fd_array[fd].owner = -1;
+}
+
+dir_t *FindName( char *name ) {
+   dir_t *starting;
+
+// assume every path relative to root directory. Eventually, the user
+// context will contain a "current working directory" and we can possibly
+// start our search there
+   if( name[0] == '/' ) {
+      starting = root_dir;
+
+      while( name[0] == '/' ) name++;
+
+      if( name[0] == 0 ) return root_dir; // client asked for "/"
+   } else {
+// path is relative, so start off at CWD for this process
+// but we don't have env var CWD, so just use root as well
+      starting = root_dir; // should be what env var CWD is
+   }
+
+   if( name[0] == 0 ) return 0;
+
+   return FindNameSub( name, starting );
+}
+
+// copy what dir_p points to (dir_t) to what attr_p points to (attr_t)
+void Dir2Attr( dir_t *dir_p, attr_t *attr_p ) {
+   attr_p->dev = run_pid;            // run_pid manages this i-node
+
+   attr_p->inode = dir_p->inode;
+   attr_p->mode = dir_p->mode;
+   attr_p->nlink = ( A_ISDIR( attr_p->mode ) ) + 1;
+   attr_p->size = dir_p->size;
+   attr_p->data = dir_p->data;
+}
+
+
 void NewProcISR(int new_pid, func_ptr_t p) {
    // clear the PCB and proc_stack for this new process
    MyBzero((char *)&pcb[new_pid], sizeof(pcb_t));
@@ -186,3 +289,137 @@ void SleepISR() {
   pcb[run_pid].state = SLEEP;
   run_pid = -1;
 }
+
+// filesys_isr.txt, code to extend isr.c in phase 6 filesys
+///////////////////////////////////////////////////// phase 6 filesys
+void FstatISR(void) {
+   char *name, *obj_data;
+   attr_t *attr_p;
+   dir_t *dir_p;
+
+   name = (char *)pcb[run_pid].TF_p->eax;
+   obj_data = (char *)pcb[run_pid].TF_p->ebx;
+
+   dir_p = FindName( name );
+
+   if( ! dir_p ) {      // dir_p == 0, not found
+      obj_data[0] = 0;  // null terminated, not found, return
+      return;
+   }
+
+   attr_p = (attr_t *)obj_data;
+   Dir2Attr( dir_p, attr_p ); // copy what dir_p points to to where attr_p points to
+
+// should include filename (add 1 to length for null char)
+   MyMemcpy( (char *)( attr_p + 1 ), dir_p->name, MyStrlen( dir_p->name ) + 1 );
+}
+
+void FopenISR(void) {
+   char *name;
+   int fd;
+   dir_t *dir_p;
+
+   name = (char *)pcb[run_pid].TF_p->eax;
+
+   fd = AllocFD( run_pid );  // run_pid is owner of fd allocated
+
+   if( fd == -1 ) {
+      cons_printf( "FopenISR: no more File Descriptor!\n" );
+      pcb[run_pid].TF_p->ebx = -1;
+      return;
+   }
+
+   dir_p = FindName( name );
+   if( ! dir_p ) {
+      cons_printf( "FopenISR: name not found!\n" );
+      pcb[run_pid].TF_p->ebx = -1;
+      return;
+   }
+
+   fd_array[fd].item = dir_p;    // dir_p is the name
+   pcb[run_pid].TF_p->ebx = fd;  // process gets this to future read
+}
+
+void FcloseISR(void) {
+   int fd, result;
+
+   fd = pcb[run_pid].TF_p->eax;
+
+   result = CanAccessFD( fd, run_pid ); // check if run_pid owns this FD
+   if( result == 0 ) FreeFD( fd );
+   else  cons_printf( "FcloseISR: cannot close FD!\n" );
+}
+
+// Copy bytes from file into user's buffer. Returns actual count of bytes
+// transferred. Read from fd_array[fd].offset (initially given 0) for
+// buff_size in bytes, and record the offset. may reach EOF though...
+void FreadISR(void) {
+   int fd, result, remaining;
+   char *read_data;
+   dir_t *lp_dir;
+
+   fd = pcb[run_pid].TF_p->eax;
+   read_data = (char *)pcb[run_pid].TF_p->ebx;
+
+   result = CanAccessFD( fd, run_pid ); // check if run_pid owns this FD
+
+   if( result != 0 ) {
+      cons_printf( "FreadISR: cannot read from FD!\n" );
+      read_data[0] = 0;  // null-terminate it
+   }
+
+   lp_dir = fd_array[fd].item;
+
+   if( A_ISDIR(lp_dir->mode ) ) {  // it's a dir
+// if reading directory, return attr_t structure followed by obj name.
+// a chunk returned per read. `offset' is index into root_dir[] table.
+      dir_t *this_dir = lp_dir;
+      attr_t *attr_p = (attr_t *)read_data;
+      dir_t *dir_p;
+
+      if( 101 < sizeof( *attr_p ) + 2) {
+         cons_printf( "FreadISR: read buffer size too small!\n" );
+         read_data[0] = 0;  // null-terminate it
+         return;
+      }
+
+// use current dir, advance to next dir for next time when called
+      do {
+         dir_p = ( (dir_t *)this_dir->data );
+         dir_p += fd_array[fd].offset ;
+
+         if( dir_p->inode == END_DIR_INODE ) {
+            read_data[0] = 0;  // EOF, null-terminate it
+            return;
+         }
+         fd_array[fd].offset++;   // advance
+      } while( dir_p->name == 0 );
+
+// MyBzero() fills buff with 0's, necessary to clean buff
+// since Dir2Attr may not completely overwrite whole buff...
+      MyBzero( read_data, 101 );
+      Dir2Attr( dir_p, attr_p );
+
+// copy obj name after attr_t, add 1 to length for null
+      MyMemcpy((char *)( attr_p + 1 ), dir_p->name, MyStrlen( dir_p->name ) + 1);
+
+   } else {  // a file, not dir
+// compute max # of bytes can transfer then MyMemcpy()
+      remaining = lp_dir->size - fd_array[fd].offset;
+
+      if( remaining == 0 ) {
+         read_data[0] = 0;  // EOF, 1st char becomes '\0'
+         return;
+      }
+
+      MyBzero( read_data, 101 );  // null termination for any part of file read
+
+      result = remaining<100?remaining:100; // -1 saving is for last null
+
+      MyMemcpy( read_data, &lp_dir->data[ fd_array[ fd ].offset ], result );
+
+      fd_array[fd].offset += result;  // advance our "current" ptr
+   }
+}
+
+

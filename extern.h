@@ -22,4 +22,6 @@ extern char hello_html_data[];
 extern dir_t bin_dir[4];
 extern dir_t www_dir[8];
 extern dir_t root_dir[11];
+extern fd_t fd_array[MAX_FD];
+
 #endif

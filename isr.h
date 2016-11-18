@@ -14,5 +14,9 @@ void SemReqISR();
 void SemWaitISR(int);
 void SemPostISR(int);
 void TermISR();
+void FstatISR();
+void FopenISR();
+void FcloseISR();
+void FreadISR();
 
 #endif
