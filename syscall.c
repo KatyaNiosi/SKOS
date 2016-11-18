@@ -62,7 +62,7 @@ int Fopen(char *name){
 }
 
 void Fstat(char *name, char *data){
-  asm("movl %0, %%eax; movl %1; %%ebx; int $53"
+  asm("movl %0, %%eax; movl %1, %%ebx; int $53"
       :
       :"g" ((int)name), "g" ((int)data)
       :"%eax" , "%ebx");

@@ -6,7 +6,7 @@
 #include "typedef.h" // q_t needs be defined in code below
 
 void MyBzero(char *, int);
-void MyStrcpy(char *, char *, int);
+void MyStrcpy(char *, char *);
 int MyStrcmp(char *, char *, int);
 int MyStrlen(char *);
 void MyMemcpy(char *, char *, int);

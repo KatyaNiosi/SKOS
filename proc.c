@@ -165,7 +165,7 @@ void TermProc(){
           
           if(1 == MyStrcmp(passwd, "pizza" , 5)){
             cons_printf("Term %d Login: %s Passwd: %s\n ", GetPid(), login, passwd);
-           MyStrcpy(a_str,"\t***Welcome! Commands are: ***\nls [file], cat <file>, logout\n",68);
+           MyStrcpy(a_str,"\t***Welcome! Commands are: ***\nls [file], cat <file>, logout\n");
             TermOut(a_str, which);
             break;
          }
