@@ -7,6 +7,7 @@
 
 void MyBzero(char *, int);
 void MyStrcpy(char *, char *, int);
+int MyStrcmp(char *, char *, int);
 int MyStrlen(char *);
 void MyMemcpy(char *, char *, int);
 int DeQ(q_t *);

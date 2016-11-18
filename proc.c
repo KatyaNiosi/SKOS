@@ -44,6 +44,76 @@ void TermOut(char *str, int which){
   }
 }
 
+void TermCatCmd(char *cmd_str, int which){
+   char obj_data[101], read_data[101];
+   attr_t *attr_p;
+   int fd;
+
+   cmd_str+=4; //skip the first 4 letters for "cat "
+   Fstat(cmd_str, obj_data);
+
+   if(obj_data[0] == (char)0){
+     TermOut("Fstat: no such file/n",which);
+     return;
+   }
+   
+   attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
+   if(A_ISDIR(attr_p->mode)) {  //if it is a directory, not a file
+      TermOut("\aUsage: cat a file, not directory!\n", which);
+      return;
+   }
+
+   fd = Fopen(cmd_str);
+
+   //read loop
+   while(1){
+     Fread(fd,read_data);
+     if(read_data[0] ==(char) 0) break;
+     TermOut(read_data, which);
+    // read_data++;
+   }
+   Fclose(fd);
+}
+
+void TermLsCmd(char *cmd_str, int which){
+   char obj_data[101], read_data[101], a_str[101];
+   attr_t *attr_p;
+   int fd;
+
+   cmd_str+=2; //skip the first 3 chars "ls "
+   
+   if(cmd_str[0] == 0) {  //if only ls is entered
+     cmd_str[0] = '/';
+     cmd_str[1] = (char)0;
+   }else if(cmd_str[0] == ' ') 
+      cmd_str++;
+
+   Fstat(cmd_str, obj_data);
+
+   if(obj_data[0] == (char)0){
+     TermOut("Fstat: no such file/n",which);
+     return;
+   }
+   
+   attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
+   if(A_ISREG(attr_p->mode)) {  //if it is a file, not a directory
+      Attr2Str(attr_p, a_str);   //convert obj data to "ls-able" string  
+      TermOut(a_str, which);
+      return;
+   }
+
+   //it is a directory
+   fd = Fopen(cmd_str);
+   //read loop
+   while(1){
+     Fread(fd, read_data);
+     if (read_data[0] == (char)0) break;
+     Attr2Str(attr_p, a_str);
+     TermOut(a_str, which);
+   }
+   Fclose(fd);
+}
+
 void TermProc(){
    char a_str[100];   // a handy string
    int i, baud_rate, divisor;
@@ -95,8 +165,7 @@ void TermProc(){
           
           if(1 == MyStrcmp(passwd, "pizza" , 5)){
             cons_printf("Term %d Login: %s Passwd: %s\n ", GetPid(), login, passwd);
-            a_str = "\t***Welcome! Commands are: ***\n
-                     ls [file], cat <file>, logout\n";
+           MyStrcpy(a_str,"\t***Welcome! Commands are: ***\nls [file], cat <file>, logout\n",68);
             TermOut(a_str, which);
             break;
          }
@@ -118,79 +187,12 @@ void TermProc(){
               TermCatCmd(cmd_str, which);
           }
           else{
-              TermOut("Command Not Known\n");
+              TermOut("Command Not Known\n",which);
           }
       }
    }
 }
 
-void TermCatCmd(char *cmd_str, int which){
-   char obj_data[101], read_data[101];
-   attr_t *attr_p;
-
-   cmd_str+=4; //skip the first 4 letters for "cat "
-   Fstat(cmd_str, obj_data);
-
-   if(obj_data[0] == (char)0){
-     TermOut("Fstat: no such file/n",which);
-     return;
-   }
-   
-   attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
-   if(A_ISDIR(attr_p->mode)) {  //if it is a directory, not a file
-      TermOut("\aUsage: cat a file, not directory!\n", which);
-      return;
-   }
-
-   int fd = Fopen(cmd_str);
-
-   //read loop
-   while(1){
-     Fread(fd,read_data);
-     if(read_data[0] ==(char) 0) break;
-     TermOut(read_data, which);
-    // read_data++;
-   }
-   Fclose(fd);
-}
-
-void TermLsCmd(char *cmd_str, int which){
-   char obj_data[101], a_str[101];
-   attr_t attr_p;
-
-   cmd_str+=2; //skip the first 3 chars "ls "
-   
-   if(cmd_str[0] == 0) {  //if only ls is entered
-     cmd_str[0] = '/';
-     cmd_str[1] = (char)0;
-   }else if(cmd_str[0] == ' ') 
-      cmd_str++;
-
-   Fstat(cmd_str, obj_data);
-
-   if(obj_data[0] == (char)0){
-     TermOut("Fstat: no such file/n",which);
-     return;
-   }
-   
-   attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
-   if(A_ISREG(attr_p->mode)) {  //if it is a file, not a directory
-      Attr2Str(attr_p, a_str);   //convert obj data to "ls-able" string  
-      TermOut(a_str, which);
-      return;
-   }
-
-   //it is a directory
-   int fd = Fopen(cmd_str);
-   //read loop
-   while(1){
-     Fread(fd, read_data);
-     if (read_data[0] == (char)0) break;
-     Attr2Str(attr_p, a_str);
-     TermOut(a_str, which);
-   }
-   Fclose(fd);
-}
 
 void IdleProc() {
    int i;
