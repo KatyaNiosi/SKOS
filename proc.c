@@ -46,65 +46,74 @@ void TermOut(char *str, int which){
 
 void TermProc(){
    char a_str[100];   // a handy string
-   int i, baud_rate, divisor, which;
-   int local, remote;
+   int i, baud_rate, divisor;
+   int which;
    char login[101], passwd[101], cmd_str[101];
 
-   local = GetPid() - 1;
-   remote = (local + 1)%2;   //0->1   1->0
-
+   which = GetPid() - 1;
+   
    //initialize the port data structure
    term[which].out_q_sem = SemReq(); //request for out_q_sem
 
    for (i = 0; i < Q_SIZE; i++)  //boost the count to 20 
-      SemPost(term[local].out_q_sem);
+      SemPost(term[which].out_q_sem);
     
-   term[local].in_q_sem = SemReq();  //request for in_q_sem 
-   term[local].echo_flag = 1;
-   term[local].out_flag = 1;
+   term[which].in_q_sem = SemReq();  //request for in_q_sem 
+   term[which].echo_flag = 1;
+   term[which].out_flag = 1;
 
    //A.set baud rate 9600
    baud_rate = 9600;
    divisor = 115200/baud_rate;  //time period of each baud
-   outportb(term[local].io_base + CFCR, CFCR_DLAB);  //CFCR_DLAB 0X80
-   outportb(term[local].io_base + BAUDLO, LOBYTE(divisor));
-   outportb(term[local].io_base + BAUDHI, HIBYTE(divisor));
+   outportb(term[which].io_base + CFCR, CFCR_DLAB);  //CFCR_DLAB 0X80
+   outportb(term[which].io_base + BAUDLO, LOBYTE(divisor));
+   outportb(term[which].io_base + BAUDHI, HIBYTE(divisor));
 
    //B. set CFCR: 7-E-1 (7 data bits, even parity, 1 stop bit)
-   outportb(term[local].io_base + CFCR, CFCR_PEVEN|CFCR_PENAB|CFCR_7BITS);
-   outportb(term[local].io_base + IER, 0);
+   outportb(term[which].io_base + CFCR, CFCR_PEVEN|CFCR_PENAB|CFCR_7BITS);
+   outportb(term[which].io_base + IER, 0);
 
    //C. raise DTR, RTS of the serial port to start read/write
-   outportb(term[local].io_base + MCR, MCR_DTR|MCR_RTS|MCR_IENABLE);
+   outportb(term[which].io_base + MCR, MCR_DTR|MCR_RTS|MCR_IENABLE);
    IO_DELAY();
-   outportb(term[local].io_base + IER, IER_ERXRDY|IER_ETXRDY); //enable TX/RX events
+   outportb(term[which].io_base + IER, IER_ERXRDY|IER_ETXRDY); //enable TX/RX events
    Sleep(50);
 
+   MyBzero(cmd_str, sizeof(char)*100);
+
    for (i = 0; i < 24; i++)
-     TermOut("\n", local);   //clear the screen
+     TermOut("\n", which);   //clear the screen
 
    while(1) {
-      TermIn(a_str, local);
-      cons_printf("Term %d entered: %s\n", GetPid(), a_str); 
-      TermOut("(Remote)", remote);
-      TermOut(a_str, remote);
-      TermOut("\n", remote);
-
+     if(cons_kbhit() && cons_getchar() == 'b') breakpoint();
     
       while(1){ // loop for login
-          cons_printf("Enter Username");
-          cons_printf("Enter Password");
-          int len = MyStrlen(a_str);
-          if(1 == MyStrcmp(a_str, "pizza" , len)){
+          TermOut("Team SKOS Login: ", which);
+          TermIn(login, which);
+          TermOut("Team SKOS Password: ", which);
+          TermIn(passwd, which);
+          
+          if(1 == MyStrcmp(passwd, "pizza" , 5)){
+            cons_printf("Term %d Login: %s Passwd: %s\n ", GetPid(), login, passwd);
+            a_str = "\t***Welcome! Commands are: ***\n
+                     ls [file], cat <file>, logout\n";
+            TermOut(a_str, which);
             break;
-          }
+         }
+         // if password didn't match
+          TermOut("Illegal Login!\n", which);
       }
       while(1){ // loop for shell command
-          cons_printf("Enter Command");
+          TermOut("Team SKOS Shell> ", which);
+          TermIn(cmd_str, which);
+
+          if(cmd_str[0] ==(char) 0) continue; //if command is NULL, reloop
+          else if(1 == MyStrcmp(cmd_str, "logout", 6)) break;
+          else if(1 == MyStrcmp(cmd_str, "ls", 2)){
               // ls command
               TermLsCmd(cmd_str, which);
           }
-          else if(1 == MyStrcmp(a_str, "cat", len)){
+          else if(1 == MyStrcmp(cmd_str, "cat", 3)){
               // cat command
               TermCatCmd(cmd_str, which);
           }
@@ -116,46 +125,69 @@ void TermProc(){
 }
 
 void TermCatCmd(char *cmd_str, int which){
-   char obj_data[101], char read_data[101];
+   char obj_data[101], read_data[101];
    attr_t *attr_p;
-   // extarct name from in cmd_str, skip first few letters
-   obj_data = Fstat(name);
-   if(obj_data != NULL){
-      cons_printf("Error could not extract name\n");
+
+   cmd_str+=4; //skip the first 4 letters for "cat "
+   Fstat(cmd_str, obj_data);
+
+   if(obj_data[0] == (char)0){
+     TermOut("Fstat: no such file/n",which);
+     return;
+   }
+   
+   attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
+   if(A_ISDIR(attr_p->mode)) {  //if it is a directory, not a file
+      TermOut("\aUsage: cat a file, not directory!\n", which);
       return;
    }
-   attr_p = (attr_t *)obj_data;
-   if(A_ISDIR(attr_p->mode)) {
-      TermOut("\aUsage: cat a file, not a directory!\n", which);
-      return;
+
+   int fd = Fopen(cmd_str);
+
+   //read loop
+   while(1){
+     Fread(fd,read_data);
+     if(read_data[0] ==(char) 0) break;
+     TermOut(read_data, which);
+    // read_data++;
    }
-   Fopen(name);
-   while(can read){
-      Fread(name);
-      if(read_data[0] == 0) break;
-      TermOut(read_data, which);
-   }
-   Fclose();
+   Fclose(fd);
 }
 
 void TermLsCmd(char *cmd_str, int which){
-   // extract name from cmd_str
-   obj_data = Fstat(name);
-   if(obj_data = NULL){
-      cons_printf("Error could not extract name\n");
+   char obj_data[101], a_str[101];
+   attr_t attr_p;
+
+   cmd_str+=2; //skip the first 3 chars "ls "
+   
+   if(cmd_str[0] == 0) {  //if only ls is entered
+     cmd_str[0] = '/';
+     cmd_str[1] = (char)0;
+   }else if(cmd_str[0] == ' ') 
+      cmd_str++;
+
+   Fstat(cmd_str, obj_data);
+
+   if(obj_data[0] == (char)0){
+     TermOut("Fstat: no such file/n",which);
+     return;
+   }
+   
+   attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
+   if(A_ISREG(attr_p->mode)) {  //if it is a file, not a directory
+      Attr2Str(attr_p, a_str);   //convert obj data to "ls-able" string  
+      TermOut(a_str, which);
       return;
    }
-   if(is file){
-      Attr2Str(attr_p, obj_data);
-      TermOut(read_data);
-      return;
-   }
-   Fopen();
-   // dir open and read each entry in it and show in terminal
-   while(read){
-      Fread(fd);
-      if(read_data == NULL) break;
-      Attr2Str(attr_p, obj_data);
+
+   //it is a directory
+   int fd = Fopen(cmd_str);
+   //read loop
+   while(1){
+     Fread(fd, read_data);
+     if (read_data[0] == (char)0) break;
+     Attr2Str(attr_p, a_str);
+     TermOut(a_str, which);
    }
    Fclose(fd);
 }
@@ -163,28 +195,6 @@ void TermLsCmd(char *cmd_str, int which){
 void IdleProc() {
    int i;
    while(1){
-     if(cons_kbhit() && cons_getchar() == 'b') breakpoint();
-     if(cons_kbhit() && cons_getchar() == 'q') exit(0);
-     cons_printf("0..");
-     for(i = 0; i < 166666; i++) IO_DELAY();
-   }
-}
-
-void UserProc() {
-   int sleep_period;
-   sleep_period = 75 + (GetPid()-1)%4*75;
-
-   while(1){
-      cons_printf("%d..", GetPid());
-      Sleep(sleep_period);
-   }
-}
-}
-
-void IdleProc() {
-   int i;
-   while(1){
-     if(cons_kbhit() && cons_getchar() == 'b') breakpoint();
      if(cons_kbhit() && cons_getchar() == 'q') exit(0);
      cons_printf("0..");
      for(i = 0; i < 166666; i++) IO_DELAY();
