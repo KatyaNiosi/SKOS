@@ -70,7 +70,6 @@ void TermCatCmd(char *cmd_str, int which){
      Fread(fd,read_data);
      if(read_data[0] ==(char) 0) break;
      TermOut(read_data, which);
-    // read_data++;
    }
    Fclose(fd);
 }
@@ -82,7 +81,7 @@ void TermLsCmd(char *cmd_str, int which){
 
    cmd_str+=2; //skip the first 3 chars "ls "
    
-   if(cmd_str[0] == 0) {  //if only ls is entered
+   if(cmd_str[0] == (char)0) {  //if only ls is entered
      cmd_str[0] = '/';
      cmd_str[1] = (char)0;
    }else if(cmd_str[0] == ' ') 
@@ -108,6 +107,7 @@ void TermLsCmd(char *cmd_str, int which){
    while(1){
      Fread(fd, read_data);
      if (read_data[0] == (char)0) break;
+     attr_p = (attr_t *)read_data;
      Attr2Str(attr_p, a_str);
      TermOut(a_str, which);
    }
@@ -115,7 +115,7 @@ void TermLsCmd(char *cmd_str, int which){
 }
 
 void TermProc(){
-   char a_str[100];   // a handy string
+   //char a_str[100];   // a handy string
    int i, baud_rate, divisor;
    int which;
    char login[101], passwd[101], cmd_str[101];
@@ -165,8 +165,8 @@ void TermProc(){
           
           if(1 == MyStrcmp(passwd, "pizza" , 5)){
             cons_printf("Term %d Login: %s Passwd: %s\n ", GetPid(), login, passwd);
-           MyStrcpy(a_str,"\t***Welcome! Commands are: ***\nls [file], cat <file>, logout\n");
-            TermOut("Welcome!\n", which);
+           //MyStrcpy(a_str,"\t***Welcome! Commands are: ***\nls [file], cat <file>, logout\n");
+            TermOut("**Welcome!**\n", which);
             break;
          }
          // if password didn't match
@@ -177,12 +177,15 @@ void TermProc(){
           TermIn(cmd_str, which);
 
           if(cmd_str[0] ==(char) 0) continue; //if command is NULL, reloop
-          else if(1 == MyStrcmp(cmd_str, "logout", 6)) break;
-          else if(1 == MyStrcmp(cmd_str, "ls", 2)){
+          else if(1 == MyStrcmp(cmd_str, "logout", 6) || 
+                  1 == MyStrcmp(cmd_str, "000000", 6)) break;
+          else if(1 == MyStrcmp(cmd_str, "ls", 2) ||
+                  1 == MyStrcmp(cmd_str, "11", 2)) {
               // ls command
               TermLsCmd(cmd_str, which);
           }
-          else if(1 == MyStrcmp(cmd_str, "cat", 3)){
+          else if(1 == MyStrcmp(cmd_str, "cat", 3) || 
+                  1 == MyStrcmp(cmd_str, "222", 3)){
               // cat command
               TermCatCmd(cmd_str, which);
           }
