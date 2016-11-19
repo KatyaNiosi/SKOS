@@ -53,7 +53,7 @@ void TermCatCmd(char *cmd_str, int which){
    Fstat(cmd_str, obj_data);
 
    if(obj_data[0] == (char)0){
-     TermOut("Fstat: no such file/n",which);
+     TermOut("Fstat: no such file\n",which);
      return;
    }
    
@@ -91,7 +91,7 @@ void TermLsCmd(char *cmd_str, int which){
    Fstat(cmd_str, obj_data);
 
    if(obj_data[0] == (char)0){
-     TermOut("Fstat: no such file/n",which);
+     TermOut("Fstat: no such file\n",which);
      return;
    }
    
@@ -166,7 +166,7 @@ void TermProc(){
           if(1 == MyStrcmp(passwd, "pizza" , 5)){
             cons_printf("Term %d Login: %s Passwd: %s\n ", GetPid(), login, passwd);
            MyStrcpy(a_str,"\t***Welcome! Commands are: ***\nls [file], cat <file>, logout\n");
-            TermOut(a_str, which);
+            TermOut("Welcome!\n", which);
             break;
          }
          // if password didn't match

@@ -93,6 +93,14 @@ void InitKernelData() {
    }
    run_pid = 0;           // IdleProc is chosen to run first
 
+   for (i = 0; i<MAX_FD; i++)
+     fd_array[i].owner = -1;   //mark all as available
+
+   root_dir[0].size = sizeof(root_dir); //can only be assigned during runtime
+   bin_dir[0].size = sizeof(bin_dir);
+   bin_dir[1].size = root_dir[0].size;
+   www_dir[0].size = sizeof(www_dir);
+   www_dir[1].size = bin_dir[0].size;
 }
 
 void ProcScheduler() {  // to choose a run PID
