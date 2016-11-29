@@ -52,6 +52,7 @@ void TripTermIRQ(){
   asm("int $35");
 }
 
+
 int Fopen(char *name){
   int fd;
   asm("movl %1, %%eax; int $54; movl %%ebx, %0"
@@ -80,4 +81,38 @@ void Fclose(int fd){
       :
       :"g" (fd)
       : "%eax");
+}
+
+//write to STdouT (terminal)
+void SysWrite(char *p){
+  asm("movl %0, %%eax; int $57"
+      : 
+      : "g" ((int) name)
+      : "%eax");
+}
+
+// create a.out process
+void Fork(char *code_addr, int code_size){
+  asm("movl %0, %%eax; movl %1, %%ebx; int $58"
+     :
+     :"g"((int)code_addr), "g" (code_size)
+     :"%eax", "%ebx");
+}
+
+//function returns child PID, get exit #
+int Wait(int *exit_status){
+  int pid;
+  asm("movl %1, %%eax; int $59; movl %%ebx, %0"
+      : "=g" (pid)
+      : "g" ((int) exit_status)
+      : "%eax" , "%ebx");
+  return pid;
+}
+
+//exit status # to return to parent
+void Exit(int exit_status){
+  asm("movl %0, %%eax; int $60"
+      :
+      :"g" (exit_status)
+      :"%eax");
 }

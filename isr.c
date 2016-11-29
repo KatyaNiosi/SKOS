@@ -422,4 +422,35 @@ void FreadISR(void) {
    }
 }
 
+void ForkISR(void){
+  int code_addr, code_size, pid, page_num;
 
+  //A. allocate a DRAM page
+  for (page_num = 0; page_num < PAGE_NUM; page_num++){
+    if(page_info[page_num].owner == -1)  // found available page
+      break;
+    if (page_num == PAGE_NUM - 1)
+      cons_printf("Kernel Panic: no free DRAM space left!\n");
+      return;
+  }
+  //B. allocate PID
+  pid = DeQ(&avail_q);
+  if(pid == -1){
+    cons_printf("Kernel panic: no more processes!\n");
+    return;
+  }
+
+  //C. set DRAM page usage info 
+  // ?????????
+  
+  //D. clear DRAM page 
+  MyBzero((char *)&page_info[page_num], sizeof(page_info_t));
+
+  //E. copy "a.out" image into the allocated DRAM page
+  code_addr = pcb[run_pid].TF_p->eax;
+  code_size = pcb[run_pid].TF_p->ebx;
+  MyMemcpy((char *)page_info[page_num].addr, (char *)code_addr, code_size);
+  
+ //F. clear PCB
+ // need to finish this isr
+}

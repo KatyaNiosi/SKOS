@@ -119,6 +119,7 @@ void TermProc(){
    int i, baud_rate, divisor;
    int which;
    char login[101], passwd[101], cmd_str[101];
+   int child_pid, exit_status;
 
    which = GetPid() - 1;
    
@@ -180,16 +181,32 @@ void TermProc(){
           else if(1 == MyStrcmp(cmd_str, "logout", 6) || 
                   1 == MyStrcmp(cmd_str, "000000", 6)) break;
           else if(1 == MyStrcmp(cmd_str, "ls", 2) ||
-                  1 == MyStrcmp(cmd_str, "11", 2)) {
+                  1 == MyStrcmp(cmd_str, "11", 2)) 
               // ls command
               TermLsCmd(cmd_str, which);
-          }
+         
           else if(1 == MyStrcmp(cmd_str, "cat", 3) || 
-                  1 == MyStrcmp(cmd_str, "222", 3)){
+                  1 == MyStrcmp(cmd_str, "222", 3))
               // cat command
               TermCatCmd(cmd_str, which);
-          }
+          
           else{
+              Fstat(cmd_str, obj_data);
+
+              if(obj_data[0] == (char)0){
+                 TermOut("Fstat: no such file\n",which);
+                 return;
+               }
+                else{
+                   attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
+                   if(attr_p->mode == MODE_EXEC) {  //if it is exe file
+                     Fork(attr_p->data, attr_p->size) //pass code addr and size
+                     child_pid = Wait(&exit_status);
+                     cons_printf("Child (PID = %d) exited with code %d", child_pid, exit_status);
+                     return;
+                   }
+                
+              } 
               TermOut("Command Not Known\n",which);
           }
       }
