@@ -22,6 +22,7 @@ struct i386_gate *IDT_ptr;
 sem_t sem[Q_SIZE];
 q_t avail_sem_q;
 term_t term[3];
+page_info_t page_info[PAGE_NUM];
 
 int main() {
    int new_pid;
@@ -66,6 +67,10 @@ void InitKernelControl(){
     SetEntry(FOPEN_INTR, FopenEntry);
     SetEntry(FREAD_INTR, FreadEntry);
     SetEntry(FCLOSE_INTR, FcloseEntry);
+    SetEntry(SYSWRITE_INTR, SysWriteEntry);
+    SetEntry(FORK_INTR, ForkEntry);
+    SetEntry(WAIT_INTR, WaitEntry),
+    SetEntry(EXIT_INTR, ExitEntry);
 }
 
 void InitKernelData() {
@@ -101,6 +106,11 @@ void InitKernelData() {
    bin_dir[1].size = root_dir[0].size;
    www_dir[0].size = sizeof(www_dir);
    www_dir[1].size = bin_dir[0].size;
+
+   //initialize each page
+   for (i = 0; i<PAGE_NUM; i++){
+     page_info[i].owner = -1;
+     page_info[i].addr = 0xe00000 + PAGE_SIZE*i; //14M = 0xe00000 = 14,680,064
 }
 
 void ProcScheduler() {  // to choose a run PID
@@ -177,7 +187,23 @@ void KernelMain(TF_t *TF_p) {
           FcloseISR();
           break;
 
-      default:
+     case SYSWRITE_INTR:
+          SysWriteISR();
+          break;
+
+     case FORK_INTR:
+          ForkISR();
+          break;
+
+      case WAIT_INTR:
+           WaitISR();
+           break;
+
+     case EXIT_INTR;
+          ExitISR();
+          break;
+
+     default:
           cons_printf("Kernel Panic: unknown intr ID (%d)!\n", TF_p->intr_id);
           breakpoint();
    }

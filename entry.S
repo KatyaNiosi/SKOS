@@ -82,7 +82,23 @@ ENTRY(FcloseEntry)
    pushl $FCLOSE_INTR
    jmp EnterKernel
 
-// save CPU context, call KernelMain()
+ENTRY(SysWriteEntry)
+    pushl $SYSWRITE_INTR
+    jmp EnterKernel
+
+ENTRY(ForkEntry)
+    pushl $FORK_INTR
+    jmp EnterKernel
+
+ENTRY(WaitEntry)
+    pushl $WAIT_INTR
+    jmp EnterKernel
+
+ENTRY(ExitEntry)
+    pushl $EXIT_INTR
+    jmp EnterKernel
+
+    // save CPU context, call KernelMain()
 EnterKernel:
    pusha
    pushl %ds

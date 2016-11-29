@@ -18,6 +18,11 @@
 #define FOPEN_INTR 54
 #define FREAD_INTR 55
 #define FCLOSE_INTR 56
+#define SYSWRITE_INTR  57
+#define FORK_INTR  58
+#define WAIT_INTR  59
+#define EXIT_INTR  60
+
 #define KERNEL_CODE 0x08         // kernel's code segment
 #define KERNEL_DATA 0x10         // kernel's data segment
 #define KERNEL_STACK_SIZE 16384  // kernel's stack byte size

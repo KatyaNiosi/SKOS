@@ -56,12 +56,24 @@ char hello_html_data[] = {
 };
 #define HELLO_HTML_SIZE ( sizeof( hello_html_data ) ) // null is added+counted
 
+char sleep_bin[] = {
+   #include "build/sleep.bin"   //must be in a separate line
+};
+#define SLEEP_SIZE (sizeof(sleep_bin))
+
+char hello_bin[] = {
+   #include "build/hello.bin"
+};
+#define HELLO_SIZE (sizeof(hello_bin))
+
 // We'll define "root_dir[]" later. Here is a forward declare.
 extern dir_t root_dir[];                         // prototype it in advance
 
 dir_t bin_dir[] = {
    { 16, MODE_DIR, ~0, ".", (char *)bin_dir },   // current dir
    { 17, MODE_DIR, ~0, "..", (char *)root_dir }, // parent dir, forward declared
+   { 18, MODE_EXEC, SLEEP_SIZE, "sleep", (char *)sleep_bin }, 
+   { 19, MODE_EXEC, HELLO_SIZE, "hello", (char *)hello_bin },
    {  0, 0, 0, NULL, NULL },                     // no entries in dir
    { END_DIR_INODE, 0, 0, NULL, NULL }           // end of bin_dir[]
 };

@@ -9,6 +9,10 @@
 #define PROC_NUM 20          // max number of processes
 #define Q_SIZE 20            // queuing capacity
 #define PROC_STACK_SIZE 4096 // process runtime stack in bytes
+#define BUF_SIZ 100
+#define PAGE_NUM 100
+#define PAGE_SIZE 4096
+
 // filesys_type.txt, code to extend typedef.h in phase 6 filesys
 //////////////////////////////////////////////// phase 6 filesys
 
@@ -72,7 +76,13 @@ typedef struct {
        echo_flag,
        out_flag,
        io_base;
+   char stdout_q[BUF_SIZ+1];
 } term_t;
+
+typedef struct {
+   int owner,
+       addr;
+} page_info_t;
 
 typedef struct {
    int inode,   // inode on the device
