@@ -11,21 +11,22 @@
 .global _start              # _start is public
 
 _start:                     # _start is main()
-   ????                     # ESP starts atop of this DRAM page
-   ????                     # minus 4KB --> start of page
+   movl  %esp, %ecx         # ESP starts atop of this DRAM page
+   
+   subl $0x1000, $ecx       # minus 4KB --> start of page
+   
+   movl $msg, %edx          # msg is x bytes into this page
+   subl $0x80000000, %edx   # subtract 2G (0x80000000), get x
 
-   ????                     # msg is x bytes into this page
-   ????                     # subtract 2G (0x80000000), get x
+   addl %ecx, %edx          # add x to start of page = msg addr
+   pushl %edx               # save a copy of msg addr into stack (pushl)
 
-   ????                     # add x to start of page = msg addr
-   ????                     # save a copy of msg addr into stack (pushl)
+   call SysWrite(%edx)      # call SysWrite to output to terminal
 
-   ????                     # call SysWrite to output to terminal
-
-   ????                     # get the saved copy of msg addr
-   ????                     # call Exit(msg addr)
+   popl %edx                # get the saved copy of msg addr
+   Exit(%edx)               # call Exit(msg addr)
 
 .data                       # data segment follows code segment in memory layout
 msg:                        # msg
-   .ascii "(Team Name): Hello! Good things need no arguments, bad things worth no arguments.\n\r"
+   .ascii "(SKOS): Hello! Good things need no arguments, bad things worth no arguments.\n\r"
 
