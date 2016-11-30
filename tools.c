@@ -12,9 +12,9 @@ void MyBzero(char *p, int size) { // initialize the string *p to 0s
    }
 }
 
-void MyStrcpy(char *d, char *s){
-  while((*d++==*s++) != 0);
-  *d = '\0';
+void MyStrcpy(char *dest, char *src){
+  while(*src != '\0') *dest++ = *src++;
+  *dest = '\0';
 }
 
 int MyStrcmp(char *p, char *q, int size){
