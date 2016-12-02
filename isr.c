@@ -454,3 +454,38 @@ void ForkISR(void){
  //F. clear PCB
  // need to finish this isr
 }
+
+void ExitISR(void){
+  int idParent, childExitNum, i;
+  int *parentExitNum;
+  idParent = pcb[run_pid].ppid;
+  if(idParent.state != WAIT4CHILD){
+      pcb[run_pid].state = ZOMBIE;
+      run_pid = -1;
+      return;
+  }
+
+  pcb[idParent].state = READY;
+  EnQ(idParent, ready_q);
+
+  childExitNum = pcb[run_pid].TF_p->eax;
+  pcb[idParent].TF_p->ebx = run_pid;
+  parentExitNum = (int *)pcb[idParent].TF_p->eax;
+  *parentExitNum = childExitNum;
+  
+  for(i = 0; i < PAGE_NUM; i++){
+    if(page_info[i].owner == run_pid){
+        page_info[i].owner = -1;
+        MyBzero((char *)page[i].addr, 4096);
+    }
+  }
+  MyBzero((char *)&pcb[run_pid], sizeof(pcb_t));
+  EnQ(run_pid, avail_q);
+  run_pid = -1;
+}
+
+void SysWriteISR(void){
+  int which;
+  char *p;
+
+}
