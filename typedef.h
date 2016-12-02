@@ -45,7 +45,7 @@
 typedef void (*func_ptr_t)(); // void-return function pointer type
 
 // this is the same as constants defines: AVAIL=0, READY=1, etc.
-typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, ZOMBIE, WAIT2CHILD} state_t;
+typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, ZOMBIE, WAIT4CHILD} state_t;
 
 typedef struct {             // PCB describes proc image
    state_t state;            // state of process

@@ -5,7 +5,7 @@
 #    input: .s file, e.g., "./build.pl sleep.s"
 #    output: .bin text file with extension .bin in name, e.g., "sleep.bin"
 
-$#ARGV == 0 || die "Usage: ./build.pl xxx.s (e.g., ./build.pl sleep.s)\n";
+$#ARGV == 0 || die "Usage: ./build.pl sleep.s\n";
 
 $ARGV[0] =~ s/\.s//;                        # get rid of ".s" part of input filename
 `as --32 $ARGV[0].s -o $ARGV[0].o`;         # GNU assembloer outputs ".o" file

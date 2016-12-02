@@ -487,5 +487,8 @@ void ExitISR(void){
 void SysWriteISR(void){
   int which;
   char *p;
-
+  which = run_pid - 1;
+  p = (char *)pcb[which].TF_q->eax;
+  MyStrcpy(term[which].stdout_q, p);
+  TermOutHandler(which);
 }
