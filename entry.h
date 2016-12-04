@@ -47,6 +47,10 @@ extern void FstatEntry();
 extern void FopenEntry();
 extern void FreadEntry();
 extern void FcloseEntry();
+extern void SysWriteEntry();
+extern void ForkEntry();
+extern void WaitEntry();
+extern void ExitEntry();
 __END_DECLS
 
 #endif

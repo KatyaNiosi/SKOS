@@ -111,6 +111,7 @@ void InitKernelData() {
    for (i = 0; i<PAGE_NUM; i++){
      page_info[i].owner = -1;
      page_info[i].addr = 0xe00000 + PAGE_SIZE*i; //14M = 0xe00000 = 14,680,064
+   }
 }
 
 void ProcScheduler() {  // to choose a run PID
@@ -199,7 +200,7 @@ void KernelMain(TF_t *TF_p) {
            WaitISR();
            break;
 
-     case EXIT_INTR;
+     case EXIT_INTR:
           ExitISR();
           break;
 

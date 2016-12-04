@@ -137,19 +137,22 @@ void NewProcISR(int new_pid, func_ptr_t p) {
    pcb[new_pid].TF_p->eip = (unsigned int)p; //set to where function pointer points to
 
 }
-
 void TermOutHandler(int which){
   char ch = 0;
+  int i;
 
-  if(term[which].echo_q.size > 0)
+  if(term[which].stdout_q[0] != 0){
+    ch = term[which].stdout_q[0];
+    for(i=0; i<BUF_SIZ+1; i++)
+      term[which].stdout_q[i] = term[which].stdout_q[i+1];
+  }
+  else if(term[which].echo_q.size > 0)
     ch = DeQ(&term[which].echo_q);
-  else{
-    if(term[which].out_q.size > 0){
+  else if(term[which].out_q.size > 0){
       ch = DeQ(&term[which].out_q);
       SemPostISR(term[which].out_q_sem);
     }
-  }
-
+ 
   if (ch != '\0'){
     outportb(term[which].io_base + DATA, ch);
     term[which].out_flag = 0;
@@ -441,10 +444,10 @@ void ForkISR(void){
   }
 
   //C. set DRAM page usage info 
-  // ?????????
+  page_info[page_num].owner = pid;
   
   //D. clear DRAM page 
-  MyBzero((char *)&page_info[page_num], sizeof(page_info_t));
+  MyBzero((char *)page_info[page_num].addr, PAGE_SIZE);
 
   //E. copy "a.out" image into the allocated DRAM page
   code_addr = pcb[run_pid].TF_p->eax;
@@ -452,43 +455,96 @@ void ForkISR(void){
   MyMemcpy((char *)page_info[page_num].addr, (char *)code_addr, code_size);
   
  //F. clear PCB
- // need to finish this isr
+ MyBzero((char *)&pcb[pid], sizeof(pcb_t));
+
+ //G. Set ppid and state in PCB
+ pcb[pid].state = READY;
+ pcb[pid].ppid = run_pid;
+
+ //H. enqueue pid to ready_q
+ EnQ(pid, &ready_q);
+
+ //I. calculate and set trapfarme ptr to near end of DRAM
+ pcb[pid].TF_p = (TF_t *)page_info[page_num].addr + 4032;
+
+ //J. set EIP of trapframe to point t DRAM page +128
+   pcb[pid].TF_p->eip = (unsigned int)page_info[page_num].addr + 128; //set to where function pointer points to
+ 
+  //K. build rest of the trap frame
+   pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE | EF_INTR;   
+   pcb[pid].TF_p->cs = get_cs();
+   pcb[pid].TF_p->ds = get_ds();
+   pcb[pid].TF_p->es = get_es();
+   pcb[pid].TF_p->fs = get_fs();
+   pcb[pid].TF_p->gs = get_gs();
 }
 
+void WaitISR(void){
+   int pid, i;
+   int *exit_status;
+
+   for(pid=0; i<PROC_NUM; pid++){
+     if(pcb[pid].ppid == run_pid && pcb[pid].state == ZOMBIE){
+       exit_status = (int *) pcb[run_pid].TF_p->eax;
+       *exit_status = pcb[pid].TF_p->eax;
+       pcb[run_pid].TF_p->ebx = pid;
+
+       //relocate chile process' resource
+       for(i=0; i<PAGE_NUM; i++){
+         if(page_info[i].owner == pid){
+           page_info[i].owner = -1;
+           MyBzero((char *)page_info[i].addr, PAGE_SIZE);
+          }
+       }
+      pcb[pid].state = AVAIL;
+      EnQ(pid, &avail_q);
+      MyBzero((char *)&pcb[pid], sizeof(pcb_t));
+      return;
+     }
+   }
+
+   //block the running parent process if no Zombie process
+   pcb[run_pid].state = WAIT4CHILD;
+   run_pid = -1;
+}
+           
 void ExitISR(void){
   int idParent, childExitNum, i;
   int *parentExitNum;
+
   idParent = pcb[run_pid].ppid;
-  if(idParent.state != WAIT4CHILD){
+  if(pcb[idParent].state != WAIT4CHILD){
       pcb[run_pid].state = ZOMBIE;
       run_pid = -1;
       return;
   }
 
   pcb[idParent].state = READY;
-  EnQ(idParent, ready_q);
+  EnQ(idParent, &ready_q);
 
   childExitNum = pcb[run_pid].TF_p->eax;
   pcb[idParent].TF_p->ebx = run_pid;
   parentExitNum = (int *)pcb[idParent].TF_p->eax;
   *parentExitNum = childExitNum;
   
-  for(i = 0; i < PAGE_NUM; i++){
+  for(i =0; i < PAGE_NUM; i++){
     if(page_info[i].owner == run_pid){
         page_info[i].owner = -1;
-        MyBzero((char *)page[i].addr, 4096);
+        MyBzero((char *)page_info[i].addr, PAGE_SIZE);
     }
   }
   MyBzero((char *)&pcb[run_pid], sizeof(pcb_t));
-  EnQ(run_pid, avail_q);
+  pcb[run_pid].state = AVAIL;
+  EnQ(run_pid, &avail_q);
   run_pid = -1;
 }
 
 void SysWriteISR(void){
   int which;
   char *p;
-  which = run_pid - 1;
-  p = (char *)pcb[which].TF_q->eax;
+
+  which = pcb[run_pid].ppid - 1;
+  p = (char *)pcb[which].TF_p->eax;
   MyStrcpy(term[which].stdout_q, p);
   TermOutHandler(which);
-}
+} 

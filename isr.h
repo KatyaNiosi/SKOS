@@ -18,5 +18,8 @@ void FstatISR();
 void FopenISR();
 void FcloseISR();
 void FreadISR();
-
+void SysWriteISR();
+void ForkISR();
+void WaitISR();
+void ExitISR();
 #endif

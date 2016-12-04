@@ -119,6 +119,8 @@ void TermProc(){
    int i, baud_rate, divisor;
    int which;
    char login[101], passwd[101], cmd_str[101];
+   char obj_data[101];
+   attr_t *attr_p;
    int child_pid, exit_status;
 
    which = GetPid() - 1;
@@ -200,7 +202,7 @@ void TermProc(){
                 else{
                    attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
                    if(attr_p->mode == MODE_EXEC) {  //if it is exe file
-                     Fork(attr_p->data, attr_p->size) //pass code addr and size
+                     Fork(attr_p->data, attr_p->size); //pass code addr and size
                      child_pid = Wait(&exit_status);
                      cons_printf("Child (PID = %d) exited with code %d", child_pid, exit_status);
                      return;

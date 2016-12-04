@@ -87,7 +87,7 @@ void Fclose(int fd){
 void SysWrite(char *p){
   asm("movl %0, %%eax; int $57"
       : 
-      : "g" ((int) name)
+      : "g" ((int)p)
       : "%eax");
 }
 

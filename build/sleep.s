@@ -17,7 +17,7 @@
 
 _start:             # instructions begin
    int  $48   #movl $300, %eax  # move 300 into eax
-   mul  $x, eax
+   mul  x    #, %eax
    int  $49         # call Sleep(300)
 
    movl $0xe00000, %eax   # exit status number
