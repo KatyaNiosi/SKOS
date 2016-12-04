@@ -465,10 +465,10 @@ void ForkISR(void){
  EnQ(pid, &ready_q);
 
  //I. calculate and set trapfarme ptr to near end of DRAM
- pcb[pid].TF_p = (TF_t *)page_info[page_num].addr + 4032;
+ pcb[pid].TF_p = (TF_t *)(page_info[page_num].addr + 4032);
 
  //J. set EIP of trapframe to point t DRAM page +128
-   pcb[pid].TF_p->eip = (unsigned int)page_info[page_num].addr + 128; //set to where function pointer points to
+   pcb[pid].TF_p->eip = (unsigned int)(page_info[page_num].addr + 128); //set to where function pointer points to
  
   //K. build rest of the trap frame
    pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE | EF_INTR;   
@@ -482,20 +482,20 @@ void ForkISR(void){
 void WaitISR(void){
    int pid, i;
    int *exit_status;
-
-   for(pid=0; i<PROC_NUM; pid++){
+breakpoint();
+   for(pid=0; pid<PROC_NUM; pid++){
      if(pcb[pid].ppid == run_pid && pcb[pid].state == ZOMBIE){
        exit_status = (int *) pcb[run_pid].TF_p->eax;
        *exit_status = pcb[pid].TF_p->eax;
        pcb[run_pid].TF_p->ebx = pid;
 
        //relocate chile process' resource
-       for(i=0; i<PAGE_NUM; i++){
-         if(page_info[i].owner == pid){
-           page_info[i].owner = -1;
-           MyBzero((char *)page_info[i].addr, PAGE_SIZE);
-          }
-       }
+       for(i=0; i<PAGE_NUM; i++)
+          if(page_info[i].owner == pid){
+             page_info[i].owner = -1;
+             MyBzero((char *)page_info[i].addr, PAGE_SIZE);
+           }
+       
       pcb[pid].state = AVAIL;
       EnQ(pid, &avail_q);
       MyBzero((char *)&pcb[pid], sizeof(pcb_t));
