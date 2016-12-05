@@ -16,8 +16,10 @@
 .global _start      # _start is main()
 
 _start:             # instructions begin
-   int  $48   #movl $300, %eax  # move 300 into eax
-   mul  x    #, %eax
+   int  $48         # move 300 into eax
+   movl $x, %ecx    #, %eax
+   mull %ecx
+   movl %edx, %eax
    int  $49         # call Sleep(300)
 
    movl $0xe00000, %eax   # exit status number

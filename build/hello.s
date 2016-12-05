@@ -11,20 +11,23 @@
 .global _start              # _start is public
 
 _start:                     # _start is main()
-   movl  %esp, %ecx         # ESP starts atop of this DRAM page
+   pushl  %esp
+   pop   %edx               # ESP starts atop of this DRAM page
    
-   subl $0x1000, $ecx       # minus 4KB --> start of page
+   sub  $0x1000, %edx       # minus 4KB --> start of page
    
-   movl $msg, %edx          # msg is x bytes into this page
-   subl $0x80000000, %edx   # subtract 2G (0x80000000), get x
+   movl $msg, %ecx          # msg is x bytes into this page
+   subl $0x80000000, %ecx   # subtract 2G (0x80000000), get x
 
    addl %ecx, %edx          # add x to start of page = msg addr
    pushl %edx               # save a copy of msg addr into stack (pushl)
+   pushl %edx
 
-   call SysWrite(%edx)      # call SysWrite to output to terminal
+   popl %eax
+   int  $57                 # call SysWrite to output to terminal
 
-   popl %edx                # get the saved copy of msg addr
-   Exit(%edx)               # call Exit(msg addr)
+   popl %eax                # get the saved copy of msg addr
+   int  $60                 # call Exit(msg addr)
 
 .data                       # data segment follows code segment in memory layout
 msg:                        # msg
