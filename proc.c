@@ -205,7 +205,7 @@ void TermProc(){
                      Fork(attr_p->data, attr_p->size); //pass code addr and size
                      child_pid = Wait(&exit_status);
                      cons_printf("Child (PID = %d) exited with code %d", child_pid, exit_status);
-                     return;
+                     continue; // return;
                    }
                 
               } 

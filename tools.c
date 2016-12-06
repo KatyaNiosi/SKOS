@@ -36,11 +36,16 @@ int MyStrlen(char *p){
 }
 
 void MyMemcpy(char *dest, char *src, int size){
-  while(size && *src != '\0'){
+/*  while(size){   // && *src != '\0'){
      *dest = *src;
      dest++; src++; size --;
-  }
+  }*/
+  int i;
+
+  for(i=0; i<size; i++)
+     dest[i] = src[i];
 }
+
 
 void Attr2Str(attr_t *attr_p, char *str){
    char *name = (char *) (attr_p + 1);
