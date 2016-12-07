@@ -12,18 +12,17 @@
 
 _start:                     # _start is main()
    pushl  %esp
-   pop   %edx               # ESP starts atop of this DRAM page
+   popl   %edx               # ESP starts atop of this DRAM page
    
-   sub  $0x1000, %edx       # minus 4KB --> start of page
+   subl  $0x1000, %edx       # minus 4KB --> start of page
    
    movl $msg, %ecx          # msg is x bytes into this page
    subl $0x80000000, %ecx   # subtract 2G (0x80000000), get x
 
-   addl %ecx, %edx          # add x to start of page = msg addr
-   pushl %edx               # save a copy of msg addr into stack (pushl)
-   pushl %edx
+   addl %edx, %ecx          # add x to start of page = msg addr
+   pushl %ecx               # save a copy of msg addr into stack (pushl)
 
-   popl %eax
+   movl %ecx, %eax
    int  $57                 # call SysWrite to output to terminal
 
    popl %eax                # get the saved copy of msg addr
@@ -31,5 +30,4 @@ _start:                     # _start is main()
 
 .data                       # data segment follows code segment in memory layout
 msg:                        # msg
-   .ascii "(SKOS): Hello! Good things need no arguments, bad things worth no arguments.\n\r"
-
+   .ascii "(SKOS) Hello!\n\r"

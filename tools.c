@@ -13,7 +13,11 @@ void MyBzero(char *p, int size) { // initialize the string *p to 0s
 }
 
 void MyStrcpy(char *dest, char *src){
-  while(*src != '\0') *dest++ = *src++;
+  while(*src != '\0'){
+    *dest = *src;
+    dest++;
+    src++;
+  }
   *dest = '\0';
 }
 
