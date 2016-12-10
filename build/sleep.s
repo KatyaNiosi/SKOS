@@ -18,9 +18,8 @@
 _start:             # instructions begin
 
    int  $48         # call GetPid() 
-  
    imul $100, %eax
-   #movl %edx, %eax
+
    int  $49         # call Sleep(300)
 
    movl $_start, %eax   # exit status number
