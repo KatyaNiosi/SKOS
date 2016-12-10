@@ -482,7 +482,7 @@ void ForkISR(void){
 void WaitISR(void){
    int pid, i;
    int *exit_status;
-breakpoint();
+
    for(pid=0; pid<PROC_NUM; pid++){
      if(pcb[pid].ppid == run_pid && pcb[pid].state == ZOMBIE){
        exit_status = (int *) pcb[run_pid].TF_p->eax;
@@ -544,7 +544,7 @@ void SysWriteISR(void){
   char *p;
 
   which = pcb[run_pid].ppid - 1;
-  p = (char *)pcb[which].TF_p->eax;
+  p = pcb[run_pid].TF_p->eax;
   MyStrcpy(term[which].stdout_q, p);
   TermOutHandler(which);
 } 

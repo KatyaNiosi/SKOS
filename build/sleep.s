@@ -16,18 +16,19 @@
 .global _start      # _start is main()
 
 _start:             # instructions begin
-   int  $48         # move 300 into eax
-   movl $x, %ecx    #, %eax
-   mull %ecx
-   movl %edx, %eax
+
+   int  $48         # call GetPid() 
+  
+   imul $100, %eax
+   #movl %edx, %eax
    int  $49         # call Sleep(300)
 
-   movl $0xe00000, %eax   # exit status number
+   movl $_start, %eax   # exit status number
    int  $60         # call Exit
 
 .data               # examples on how to declare data
 x:
-   .long 100        # integer, init 100
+   .long 1        # integer, init 100
 msg1:
    .ascii "Hello, World!\n\r"  # null-terminated string
 msg2:                   # another string

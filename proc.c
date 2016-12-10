@@ -10,7 +10,7 @@
 #include <spede/machine/pic.h>
 #include <spede/flames.h>
 
-#define LOOP 166666 
+#define LOOP 1666667 
 
 void TermIn(char *str, int which){
   char ch, *p;
@@ -115,7 +115,6 @@ void TermLsCmd(char *cmd_str, int which){
 }
 
 void TermProc(){
-   //char a_str[100];   // a handy string
    int i, baud_rate, divisor;
    int which;
    char login[101], passwd[101], cmd_str[101];
@@ -158,7 +157,7 @@ void TermProc(){
      TermOut("\n", which);   //clear the screen
 
    while(1) {
-     if(cons_kbhit() && cons_getchar() == 'b') breakpoint();
+//     if(cons_kbhit() && cons_getchar() == 'b') breakpoint();
     
       while(1){ // loop for login
           TermOut("Team SKOS Login: ", which);
@@ -197,15 +196,15 @@ void TermProc(){
 
               if(obj_data[0] == (char)0){
                  TermOut("Fstat: no such file\n",which);
-                 return;
+                 continue;
                }
                 else{
                    attr_p = (attr_t *)obj_data;  //cast data to attr ptr;
                    if(attr_p->mode == MODE_EXEC) {  //if it is exe file
                      Fork(attr_p->data, attr_p->size); //pass code addr and size
                      child_pid = Wait(&exit_status);
-                     cons_printf("Child (PID = %d) exited with code %d", child_pid, exit_status);
-                     continue; // return;
+                     cons_printf("Child (PID = %d) exited with code %x\n", child_pid, exit_status);
+                     continue;
                    }
                 
               } 
@@ -219,9 +218,9 @@ void TermProc(){
 void IdleProc() {
    int i;
    while(1){
-     if(cons_kbhit() && cons_getchar() == 'q') exit(0);
+     if(cons_kbhit() && cons_getchar() == 'b') breakpoint();
      cons_printf("0..");
-     for(i = 0; i < 166666; i++) IO_DELAY();
+     for(i = 0; i < LOOP; i++) IO_DELAY();
    }
 }
 
